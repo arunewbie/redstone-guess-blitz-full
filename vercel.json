@@ -1,0 +1,12 @@
+
+{
+  "version": 2,
+  "builds": [{ "src": "index.html", "use": "@vercel/static" }],
+  "functions": {
+    "api/leaderboard.ts": { "runtime": "nodejs18.x" }
+  },
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/api/leaderboard.ts" },
+    { "src": "/(.*)", "dest": "/index.html" }
+  ]
+}
