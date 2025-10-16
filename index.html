@@ -11,6 +11,12 @@
   background: url('/images/redstone-bg.png') no-repeat center center fixed;
   background-size: cover;
 }
+    
+button:disabled{
+  opacity:.45;
+  cursor:not-allowed;
+  filter:saturate(.6);
+}
 
     body::before {
       content: '';
@@ -87,7 +93,7 @@
       <div class="controls">
         <button id="reshuffle" class="secondary">⤮ Acak Ulang</button>
         <button id="reveal" class="ghost">👁 Hint</button>
-        <button id="startBlitz">⚡ Mulai Blitz</button>
+       <button id="startBlitz" disabled>⚡ Mulai Blitz</button>
         <button id="stopBlitz" class="ghost">■ Stop Blitz</button>
       </div>
     </section>
@@ -314,7 +320,44 @@
 
     document.getElementById('reshuffle').onclick = ()=>{ state.seed = (Math.random()*1e9)>>>0; state.revealCount=0; drawCurrent() };
     document.getElementById('reveal').onclick = ()=>{ state.revealCount = Math.min(state.revealCount+1, state.rows*state.cols-1); drawCurrent() };
-    document.getElementById('startBlitz').onclick = startBlitz;
+    const startBtn = document.getElementById('startBlitz');
+const usernameInput = document.getElementById('username');
+
+// fungsi kontrol enable/disable tombol
+function updateStartState(){
+  const hasName = usernameInput.value.trim().length > 0;
+  startBtn.disabled = !hasName;
+}
+
+// kalau user ketik di input → cek apakah tombol bisa diaktifkan
+usernameInput.addEventListener('input', updateStartState);
+
+// validasi saat klik tombol
+function startBlitz(){
+  const name = usernameInput.value.trim();
+  if(!name){
+    feedbackEl.innerHTML = '⚠️ Masukkan username terlebih dahulu sebelum mulai.';
+    return;
+  }
+  state.ended=false;
+  state.score=0;
+  scoreEl.textContent=state.score;
+  historyEl.innerHTML='';
+  stopBlitz();
+  state.totalLeft = state.totalTime;
+  updateTotalUI();
+  state.totalTimer = setInterval(()=>{
+    state.totalLeft--;
+    updateTotalUI();
+    if(state.totalLeft<=0){
+      endBlitz();
+    }
+  },1000);
+  drawCurrent();
+}
+
+startBtn.onclick = startBlitz;
+
     document.getElementById('stopBlitz').onclick = ()=>{ stopBlitz(); state.ended=true; feedbackEl.innerHTML = t().stopped(state.score); const username=(document.getElementById('username').value||'Anon'); saveScore(username, state.score); };
 
     document.getElementById('submit').onclick = ()=>{
@@ -328,6 +371,9 @@
 
     // init
     langSelect.value = currentLang; setLanguage(currentLang); renderLeaderboard();
+    
+    updateStartState();
+
   </script>
 </body>
 </html>
