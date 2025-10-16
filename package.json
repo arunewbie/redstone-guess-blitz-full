@@ -3,9 +3,7 @@
   "name": "redstone-guess-blitz",
   "version": "1.0.0",
   "scripts": {
-    "dev": "vercel dev",
-    "build": "vercel build",
-    "start": "vercel start"
-  },
-  "dependencies": {}
+    "dev": "echo 'dev local only'",
+    "start": "echo 'start local only'"
+  }
 }
