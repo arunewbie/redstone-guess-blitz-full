@@ -98,6 +98,8 @@ button:disabled{
       </div>
     </section>
 
+
+    
     <aside class="card sidebar">
       <div class="panel">
         <h3 id="labelUsername">Username</h3>
@@ -220,12 +222,12 @@ button:disabled{
 
     // ================= Game (Blitz only) =================
     const QUESTIONS = [
-      { image: 'redstone.png', answer: 'REDSTONE' },
-      { image: 'atom.png', answer: 'ATOM' },
-      { image: 'pull.png', answer: 'PULL' },
-      { image: 'feed.png', answer: 'FEED' },
-      { image: 'liquidation.png', answer: 'LIQUIDATION' },
-    ];
+  { image: 'redstone.png', answers: ['REDSTONE', 'redstone', 'red stone'] },
+  { image: 'atom.png', answers: ['ATOM', 'atom'] },
+  { image: 'pull.png', answers: ['PULL', 'pull'] },
+  { image: 'feed.png', answers: ['FEED', 'feed'] },
+  { image: 'liquidation.png', answers: ['LIQUIDATION', 'liquidation'] },
+];
     const IMAGE_BASE = '/images/';
 
     function mulberry32(a){return function(){var t=a+=0x6D2B79F5;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
@@ -328,6 +330,11 @@ function updateStartState(){
   const hasName = usernameInput.value.trim().length > 0;
   startBtn.disabled = !hasName;
 }
+    
+function normalize(str){
+  return str.replace(/\s+/g,'')   // hilangkan semua spasi
+            .toUpperCase();       // ubah ke huruf besar
+}
 
 // kalau user ketik di input → cek apakah tombol bisa diaktifkan
 usernameInput.addEventListener('input', updateStartState);
@@ -360,12 +367,37 @@ startBtn.onclick = startBlitz;
 
     document.getElementById('stopBlitz').onclick = ()=>{ stopBlitz(); state.ended=true; feedbackEl.innerHTML = t().stopped(state.score); const username=(document.getElementById('username').value||'Anon'); saveScore(username, state.score); };
 
-    document.getElementById('submit').onclick = ()=>{
-      if(state.ended) return; const guess = (answerEl.value||'').trim().toUpperCase(); const username = document.getElementById('username').value.trim(); if (!guess) return; const correct = QUESTIONS[state.idx].answer.toUpperCase();
-      if (guess === correct){ state.score += 1; scoreEl.textContent = state.score; feedbackEl.innerHTML = t().correct(correct); addHistory(t().historyOk(correct), 'ok'); nextQuestion(); }
-      else { feedbackEl.innerHTML = t().wrong; addHistory(t().historyWrong(guess), 'wrong'); }
-      answerEl.value = ''; answerEl.focus();
-    };
+    // ✨ Fungsi bantu untuk normalisasi jawaban
+function normalize(str){
+  return str.replace(/\s+/g,'')   // hilangkan semua spasi
+            .toUpperCase();       // ubah ke huruf besar
+}
+
+document.getElementById('submit').onclick = ()=>{
+  if (state.ended) return;
+
+  const guess = normalize(answerEl.value || '');
+  const username = document.getElementById('username').value.trim();
+  if (!guess) return;
+
+  const correctAnswers = QUESTIONS[state.idx].answers.map(a => normalize(a));
+  const official = QUESTIONS[state.idx].answers[0];
+
+  if (correctAnswers.includes(guess)) {
+    state.score += 1;
+    scoreEl.textContent = state.score;
+    feedbackEl.innerHTML = t().correct(official.toUpperCase());
+    addHistory(t().historyOk(official.toUpperCase()), 'ok');
+    nextQuestion();
+  } else {
+    feedbackEl.innerHTML = t().wrong;
+    addHistory(t().historyWrong(answerEl.value.toUpperCase()), 'wrong');
+  }
+
+  answerEl.value = '';
+  answerEl.focus();
+};
+
 
     answerEl.addEventListener('keydown', (e)=>{ if(e.key==='Enter') document.getElementById('submit').click() });
 
