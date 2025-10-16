@@ -1,1 +1,337 @@
-<!DOCTYPE html><html><body><h1>RedStone Guess Blitz</h1><p>Versi lengkap game sudah disisipkan.</p></body></html>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RedStone Guess – Blitz 60s</title>
+  <style>
+    :root{--primary:#ff1e00;--bg:#0b0b0f;--muted:#9aa0a6;--card:#13141a}
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background: url('images/redstone-bg.png') no-repeat center center fixed;
+      background-size: cover;
+      color:#fff;
+      font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;
+      position: relative;
+      min-height: 100vh;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      backdrop-filter: blur(8px);
+      background: rgba(0, 0, 0, 0.45);
+      z-index: 0;
+    }
+
+    header{padding:22px 18px 6px;text-align:center; position: relative; z-index: 1;}
+    h1{margin:0;font-weight:800;letter-spacing:.3px}
+    .sub{color:var(--muted);font-size:14px}
+
+    .lang-select{position:absolute;top:20px;right:20px;z-index:2;}
+    select{background:#1d212b;color:#fff;border:1px solid #2a2f3a;border-radius:8px;padding:6px 10px;font-size:14px}
+
+    .container{max-width:1080px;margin:20px auto;padding:0 16px;display:grid;grid-template-columns:1fr 360px;gap:18px; position: relative; z-index: 1;}
+    @media (max-width:960px){.container{grid-template-columns:1fr}}
+
+    .card{background:var(--card);border:1px solid #1e2027;border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+    .game{padding:16px}
+    .board{display:flex;justify-content:center;align-items:center; padding:8px;}
+    canvas{width:100%;max-width:560px;height:auto;display:block;border-radius:14px;border:1px solid #242633;background:#0b0c12}
+
+    .status{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:center;margin:12px 0}
+    .badge{background:#191b22;border:1px solid #252830;padding:6px 10px;border-radius:999px;font-size:13px;color:#d5d7dc}
+    .controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:10px 0}
+    button{background:var(--primary);color:#fff;border:none;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer}
+    button.secondary{background:#1d212b;color:#e7e9ee;border:1px solid #2a2f3a}
+    button.ghost{background:transparent;border:1px dashed #3a3f4d;color:#c9cbd2}
+
+    .sidebar{padding:16px;display:grid;gap:12px}
+    .panel{background:#0f1117;border:1px solid #1f232d;border-radius:14px;padding:14px}
+    .panel h3{margin:0 0 8px;font-size:15px;color:#e8eaee}
+    .row{display:flex;gap:8px}
+    input[type=text]{flex:1;background:#0c0e13;border:1px solid #232634;color:#e9ebf1;border-radius:12px;padding:10px 12px}
+    .hint{font-size:13px;color:#aab1ba;margin-top:6px}
+    .list{display:grid;gap:6px;font-size:14px;color:#cdd1d7;max-height:150px;overflow:auto}
+    .ok{color:#66ef9a}
+    .wrong{color:#ff7a7a}
+    .muted{color:#9aa0a6}
+    .footer{padding:18px;text-align:center;color:#9aa0a6; position: relative; z-index: 1;}
+
+    .leaderboard-entry {display:flex;justify-content:space-between;border-bottom:1px solid #222;padding:4px 0}
+    .leaderboard-entry span {font-size:14px}
+    .danger{color:#ff7a7a}
+  </style>
+</head>
+<body>
+  <div class="lang-select">
+    <select id="language">
+      <option value="id">🇮🇩 Indonesia</option>
+      <option value="en">🇬🇧 English</option>
+    </select>
+  </div>
+  <header>
+    <h1 id="titleText">⚡ RedStone Guess — Blitz 60s</h1>
+    <div class="sub" id="subtitleText">Tebak istilah RedStone secepat mungkin selama 60 detik. Skor tertinggi masuk leaderboard publik 🏆</div>
+  </header>
+
+  <main class="container">
+    <section class="card game">
+      <div class="board">
+        <canvas id="board" width="560" height="560"></canvas>
+      </div>
+      <div class="status">
+        <div class="badge" id="labelQuestion">Soal <span id="qIndex">1</span>/<span id="qTotal">1</span></div>
+        <div class="badge" id="labelScore">Skor: <span id="score">0</span></div>
+        <div class="badge" id="labelGrid">Grid: <span id="gridLabel">3×3</span></div>
+        <div class="badge" id="labelSeed">Seed: <span id="seedLabel">—</span></div>
+        <div class="badge" id="labelTime">Waktu Blitz: <span id="totalLeft">60</span>s</div>
+      </div>
+      <div class="controls">
+        <button id="reshuffle" class="secondary">⤮ Acak Ulang</button>
+        <button id="reveal" class="ghost">👁 Hint</button>
+        <button id="startBlitz">⚡ Mulai Blitz</button>
+        <button id="stopBlitz" class="ghost">■ Stop Blitz</button>
+      </div>
+    </section>
+
+    <aside class="card sidebar">
+      <div class="panel">
+        <h3 id="labelUsername">Username</h3>
+        <div class="row"><input id="username" type="text" placeholder="Username kamu..." /></div>
+      </div>
+
+      <div class="panel">
+        <h3 id="labelAnswer">Jawabanmu</h3>
+        <div class="row">
+          <input id="answer" type="text" placeholder="contoh: ATOM / FEED / PULL" />
+          <button id="submit">Jawab</button>
+        </div>
+        <div id="feedback" class="hint muted">Ketik jawaban lalu klik <b>Jawab</b>.</div>
+      </div>
+
+      <div class="panel">
+        <h3 id="labelHistory">Riwayat</h3>
+        <div id="history" class="list"></div>
+      </div>
+
+      <div class="panel">
+        <h3 id="labelLeaderboard">Leaderboard 🏆</h3>
+        <div id="leaderboard" class="list"></div>
+      </div>
+    </aside>
+  </main>
+
+  <div class="footer" id="footerText">Made for RedStone community • Blitz Mode Only • Deploy di Vercel/GitHub Pages</div>
+
+  <script>
+    // ================= I18N =================
+    const translations = {
+      id: {
+        title: '⚡ RedStone Guess — Blitz 60s',
+        subtitle: 'Tebak istilah RedStone secepat mungkin selama 60 detik. Skor tertinggi masuk leaderboard publik 🏆',
+        question: 'Soal',
+        score: 'Skor',
+        grid: 'Grid',
+        seed: 'Seed',
+        time: 'Waktu Blitz',
+        username: 'Username',
+        answer: 'Jawabanmu',
+        history: 'Riwayat',
+        leaderboard: 'Leaderboard 🏆',
+        footer: 'Made for RedStone community • Blitz Mode Only • Deploy di Vercel/GitHub Pages',
+        submit: 'Jawab',
+        reshuffle: '⤮ Acak Ulang',
+        reveal: '👁 Hint',
+        start: '⚡ Mulai Blitz',
+        stop: '■ Stop Blitz',
+        placeholder: 'contoh: ATOM / FEED / PULL',
+        feedbackType: 'Ketik jawaban lalu klik',
+        correct: (a)=>`✅ Benar! Jawaban: <b>${a}</b>`,
+        wrong: '❌ Salah. Coba lagi!',
+        stopped: (s)=>`■ Blitz dihentikan. Skor: <b>${s}</b>`,
+        ended: (s)=>`⚡️ Blitz selesai! Skor akhir: <b>${s}</b>`,
+        historyOk: (a)=>`✔ ${a}`,
+        historyWrong: (g)=>`✖ ${g}`
+      },
+      en: {
+        title: '⚡ RedStone Guess — Blitz 60s',
+        subtitle: 'Guess RedStone terms as fast as possible in 60 seconds. Highest score enters the leaderboard 🏆',
+        question: 'Question',
+        score: 'Score',
+        grid: 'Grid',
+        seed: 'Seed',
+        time: 'Blitz Time',
+        username: 'Username',
+        answer: 'Your Answer',
+        history: 'History',
+        leaderboard: 'Leaderboard 🏆',
+        footer: 'Made for RedStone community • Blitz Mode Only • Deploy on Vercel/GitHub Pages',
+        submit: 'Submit',
+        reshuffle: '⤮ Reshuffle',
+        reveal: '👁 Hint',
+        start: '⚡ Start Blitz',
+        stop: '■ Stop Blitz',
+        placeholder: 'e.g. ATOM / FEED / PULL',
+        feedbackType: 'Type your answer then press',
+        correct: (a)=>`✅ Correct! Answer: <b>${a}</b>`,
+        wrong: '❌ Incorrect. Try again!',
+        stopped: (s)=>`■ Blitz stopped. Score: <b>${s}</b>`,
+        ended: (s)=>`⚡️ Blitz ended! Final score: <b>${s}</b>`,
+        historyOk: (a)=>`✔ ${a}`,
+        historyWrong: (g)=>`✖ ${g}`
+      }
+    };
+
+    const langSelect = document.getElementById('language');
+    let currentLang = localStorage.getItem('lang') || 'id';
+
+    function t(){ return translations[currentLang]; }
+
+    function setLanguage(lang){
+      currentLang = lang; localStorage.setItem('lang', lang);
+      const tr = t();
+      document.getElementById('titleText').textContent = tr.title;
+      document.getElementById('subtitleText').textContent = tr.subtitle;
+      document.getElementById('labelQuestion').childNodes[0].nodeValue = tr.question + ' ';
+      document.getElementById('labelScore').childNodes[0].nodeValue = tr.score + ': ';
+      document.getElementById('labelGrid').childNodes[0].nodeValue = tr.grid + ': ';
+      document.getElementById('labelSeed').childNodes[0].nodeValue = tr.seed + ': ';
+      document.getElementById('labelTime').childNodes[0].nodeValue = tr.time + ': ';
+      document.getElementById('labelUsername').textContent = tr.username;
+      document.getElementById('labelAnswer').textContent = tr.answer;
+      document.getElementById('labelHistory').textContent = tr.history;
+      document.getElementById('labelLeaderboard').textContent = tr.leaderboard;
+      document.getElementById('footerText').textContent = tr.footer;
+      document.getElementById('submit').textContent = tr.submit;
+      document.getElementById('reshuffle').textContent = tr.reshuffle;
+      document.getElementById('reveal').textContent = tr.reveal;
+      document.getElementById('startBlitz').textContent = tr.start;
+      document.getElementById('stopBlitz').textContent = tr.stop;
+      document.getElementById('answer').placeholder = tr.placeholder;
+      // update existing feedback text to current language
+      document.getElementById('feedback').innerHTML = `${tr.feedbackType} <b>${tr.submit}</b>.`;
+    }
+
+    langSelect.addEventListener('change', e => setLanguage(e.target.value));
+
+    // ================= Game (Blitz only) =================
+    const QUESTIONS = [
+      { image: 'redstone.png', answer: 'REDSTONE' },
+      { image: 'atom.png', answer: 'ATOM' },
+      { image: 'pull.png', answer: 'PULL' },
+      { image: 'feed.png', answer: 'FEED' },
+      { image: 'liquidation.png', answer: 'LIQUIDATION' },
+    ];
+    const IMAGE_BASE = 'images/';
+
+    function mulberry32(a){return function(){var t=a+=0x6D2B79F5;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
+    function seededShuffle(arr, rng){ for (let i=arr.length-1;i>0;i--){ const j=Math.floor(rng()* (i+1)); [arr[i],arr[j]]=[arr[j],arr[i]] } return arr }
+
+    const canvas = document.getElementById('board');
+    const ctx = canvas.getContext('2d');
+    const qIndexEl = document.getElementById('qIndex');
+    const qTotalEl = document.getElementById('qTotal');
+    const scoreEl = document.getElementById('score');
+    const gridLabel = document.getElementById('gridLabel');
+    const seedLabel = document.getElementById('seedLabel');
+    const totalLeftEl = document.getElementById('totalLeft');
+    const answerEl = document.getElementById('answer');
+    const feedbackEl = document.getElementById('feedback');
+    const historyEl = document.getElementById('history');
+    const leaderboardEl = document.getElementById('leaderboard');
+
+    const state = { idx:0, score:0, rows:3, cols:3, seed:Date.now()>>>0, revealCount:0, totalTime:60, totalLeft:60, totalTimer:null, ended:true };
+    qTotalEl.textContent = QUESTIONS.length;
+
+    async function saveScore(username, score){
+      try{
+        if(!username) username = 'Anon';
+        const res = await fetch('/api/leaderboard',{ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ name: username, score })});
+        if(!res.ok) throw new Error('POST failed');
+      } catch(e){
+        let board = JSON.parse(localStorage.getItem('leaderboard')||'[]');
+        board.push({name:username,score:score,date:Date.now()});
+        board.sort((a,b)=>b.score - a.score);
+        board = board.slice(0,10);
+        localStorage.setItem('leaderboard',JSON.stringify(board));
+      }
+      renderLeaderboard();
+    }
+
+    async function renderLeaderboard(){
+      leaderboardEl.innerHTML='';
+      try{
+        const res = await fetch('/api/leaderboard');
+        if(!res.ok) throw new Error('GET failed');
+        const data = await res.json();
+        (data||[]).forEach((entry,i)=>{
+          const div=document.createElement('div');
+          div.className='leaderboard-entry';
+          div.innerHTML=`<span>${i+1}. ${entry.name}</span><span>${entry.score}</span>`;
+          leaderboardEl.appendChild(div);
+        });
+      } catch(e){
+        const board = JSON.parse(localStorage.getItem('leaderboard')||'[]');
+        board.forEach((entry,i)=>{
+          const div=document.createElement('div');
+          div.className='leaderboard-entry';
+          div.innerHTML=`<span>${i+1}. ${entry.name}</span><span>${entry.score}</span>`;
+          leaderboardEl.appendChild(div);
+        });
+      }
+    }
+
+    function loadImage(src){
+      return new Promise((resolve, reject)=>{ const img = new Image(); img.onload = ()=>resolve(img); img.onerror = reject; img.src = IMAGE_BASE + src; })
+    }
+
+    async function drawScramble(img, rows, cols, seed, revealCount=0){
+      const w = canvas.width, h = canvas.height; ctx.clearRect(0,0,w,h);
+      const ratio = Math.max(w/img.width, h/img.height); const dw = img.width*ratio, dh = img.height*ratio; const dx = (w - dw)/2, dy = (h - dh)/2;
+      const tiles = []; for (let r=0;r<rows;r++) for(let c=0;c<cols;c++) tiles.push({r,c});
+      const rng = mulberry32(seed); const order = seededShuffle(tiles.slice(), rng);
+      let identical = true; for (let i=0;i<order.length;i++){ if(order[i].r!==tiles[i].r || order[i].c!==tiles[i].c){ identical=false; break; } } if (identical && order.length>1){ [order[order.length-1], order[order.length-2]] = [order[order.length-2], order[order.length-1]] }
+      const sw = dw/cols, sh = dh/rows; const tw = w/cols,  th = h/rows;
+      const revealSet = new Set(); for (let k=0;k<revealCount && k<tiles.length;k++) revealSet.add(k);
+      for (let i=0;i<order.length;i++){
+        const src = order[i]; const tr = Math.floor(i/cols), tc = i%cols; const sx = dx + src.c*sw, sy = dy + src.r*sh; const tx = tc*tw, ty = tr*th;
+        let drawSx = sx, drawSy = sy; if (revealSet.has(i)){ const correctR = Math.floor(i/cols); const correctC = i%cols; drawSx = dx + correctC*sw; drawSy = dy + correctR*sh; }
+        ctx.drawImage(img, drawSx, drawSy, sw, sh, tx, ty, tw, th); ctx.strokeStyle = 'rgba(255,255,255,.06)'; ctx.lineWidth = 1; ctx.strokeRect(tx+0.5, ty+0.5, tw-1, th-1);
+      }
+      const grd = ctx.createRadialGradient(w/2,h/2,Math.min(w,h)/8, w/2,h/2,Math.max(w,h)/1.0); grd.addColorStop(0,'rgba(0,0,0,0)'); grd.addColorStop(1,'rgba(0,0,0,.35)'); ctx.fillStyle = grd; ctx.fillRect(0,0,w,h);
+    }
+
+    async function drawCurrent(){
+      const q = QUESTIONS[state.idx]; qIndexEl.textContent = state.idx+1; seedLabel.textContent = state.seed; const img = await loadImage(q.image); await drawScramble(img, state.rows, state.cols, state.seed, state.revealCount);
+    }
+
+    function addHistory(text, cls=''){ const div = document.createElement('div'); div.textContent = text; if (cls) div.classList.add(cls); historyEl.prepend(div); }
+
+    function startBlitz(){ state.ended=false; state.score=0; scoreEl.textContent=state.score; historyEl.innerHTML=''; stopBlitz(); state.totalLeft = state.totalTime; updateTotalUI(); state.totalTimer = setInterval(()=>{ state.totalLeft--; updateTotalUI(); if(state.totalLeft<=0){ endBlitz(); } },1000); drawCurrent(); }
+    function stopBlitz(){ if(state.totalTimer){ clearInterval(state.totalTimer); state.totalTimer=null; } }
+    function updateTotalUI(){ totalLeftEl.textContent = Math.max(0, state.totalLeft); if (state.totalLeft <= 10) totalLeftEl.classList.add('danger'); else totalLeftEl.classList.remove('danger'); }
+    function endBlitz(){ stopBlitz(); state.ended=true; feedbackEl.innerHTML = t().ended(state.score); const username=(document.getElementById('username').value||'Anon'); saveScore(username, state.score); }
+
+    function nextQuestion(){ state.idx = (state.idx+1)%QUESTIONS.length; state.seed=(Math.random()*1e9)>>>0; state.revealCount=0; drawCurrent(); }
+
+    document.getElementById('reshuffle').onclick = ()=>{ state.seed = (Math.random()*1e9)>>>0; state.revealCount=0; drawCurrent() };
+    document.getElementById('reveal').onclick = ()=>{ state.revealCount = Math.min(state.revealCount+1, state.rows*state.cols-1); drawCurrent() };
+    document.getElementById('startBlitz').onclick = startBlitz;
+    document.getElementById('stopBlitz').onclick = ()=>{ stopBlitz(); state.ended=true; feedbackEl.innerHTML = t().stopped(state.score); const username=(document.getElementById('username').value||'Anon'); saveScore(username, state.score); };
+
+    document.getElementById('submit').onclick = ()=>{
+      if(state.ended) return; const guess = (answerEl.value||'').trim().toUpperCase(); const username = document.getElementById('username').value.trim(); if (!guess) return; const correct = QUESTIONS[state.idx].answer.toUpperCase();
+      if (guess === correct){ state.score += 1; scoreEl.textContent = state.score; feedbackEl.innerHTML = t().correct(correct); addHistory(t().historyOk(correct), 'ok'); nextQuestion(); }
+      else { feedbackEl.innerHTML = t().wrong; addHistory(t().historyWrong(guess), 'wrong'); }
+      answerEl.value = ''; answerEl.focus();
+    };
+
+    answerEl.addEventListener('keydown', (e)=>{ if(e.key==='Enter') document.getElementById('submit').click() });
+
+    // init
+    langSelect.value = currentLang; setLanguage(currentLang); renderLeaderboard();
+  </script>
+</body>
+</html>
