@@ -11,6 +11,21 @@
   background: url('/images/redstone-bg.png') no-repeat center center fixed;
   background-size: cover;
 }
+    /* judul + logo */
+#titleText{
+  color: #ffffff !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-weight: 800;
+  letter-spacing: .3px;
+  text-shadow: 0 0 10px rgba(255,255,255,.25);
+}
+.title-logo{ height: 40px; width: auto; }
+.title-text{ color: #ffffff !important; }   /* pastikan teksnya putih */
+@media (max-width:520px){ .title-logo{ height: 32px; } }
+
     
 button:disabled{
   opacity:.45;
