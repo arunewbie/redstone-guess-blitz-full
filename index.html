@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>RedStone Fans Game</title>
 
-  <!-- Favicon (SVG + fallbacks) -->
+  <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/images/logo-redstone.svg">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16.png">
@@ -13,46 +13,49 @@
   <style>
     :root{--primary:#ff1e00;--bg:#0b0b0f;--muted:#9aa0a6;--card:#13141a}
     *{box-sizing:border-box}
-
     body{
-      background: url('/images/redstone-bg.png') no-repeat center center fixed;
-      background-size: cover;
+      background:url('/images/redstone-bg.png') no-repeat center center fixed;
+      background-size:cover;
     }
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      backdrop-filter: blur(8px);
-      background: rgba(0, 0, 0, 0.45);
-      z-index: 0;
+    body::before{
+      content:'';position:fixed;inset:0;
+      backdrop-filter:blur(8px);
+      background:rgba(0,0,0,0.45);
+      z-index:0;
     }
 
-    /* Title + logo */
-    #titleText{
-      color:#fff!important; display:flex; align-items:center; justify-content:center;
-      gap:10px; font-weight:800; letter-spacing:.3px; text-shadow:0 0 10px rgba(255,255,255,.25);
-    }
-    .title-logo{ height:40px; width:auto }
-    .title-text{ color:#fff!important }
-    @media (max-width:520px){ .title-logo{ height:32px } }
+    /* Title */
+    #titleText{color:#fff!important;display:flex;align-items:center;justify-content:center;gap:10px;font-weight:800;letter-spacing:.3px;text-shadow:0 0 10px rgba(255,255,255,.25);}
+    .title-logo{height:40px;width:auto}
+    .title-text{color:#fff!important}
+    @media(max-width:520px){.title-logo{height:32px}}
 
-    header{padding:22px 18px 6px;text-align:center; position: relative; z-index: 1;}
+    header{padding:22px 18px 6px;text-align:center;position:relative;z-index:1;}
     h1{margin:0;font-weight:800;letter-spacing:.3px}
     .sub{color:var(--muted);font-size:14px}
-    .container{max-width:1080px;margin:20px auto;padding:0 16px;display:grid;grid-template-columns:1fr 360px;gap:18px; position: relative; z-index: 1;}
-    @media (max-width:960px){.container{grid-template-columns:1fr}}
+    .container{max-width:1080px;margin:20px auto;padding:0 16px;display:grid;grid-template-columns:1fr 360px;gap:18px;position:relative;z-index:1;}
+    @media(max-width:960px){.container{grid-template-columns:1fr}}
     .card{background:var(--card);border:1px solid #1e2027;border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
     .game{padding:16px}
-    .board{display:flex;justify-content:center;align-items:center; padding:8px;}
+    .board{display:flex;justify-content:center;align-items:center;padding:8px;}
     canvas{width:100%;max-width:560px;height:auto;display:block;border-radius:14px;border:1px solid #242633;background:#0b0c12}
-    .status{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:center;margin:12px 0}
+
+    /* Timer */
+    #labelTime{font-size:20px;font-weight:800;}
+    #totalLeft{font-size:32px;font-weight:800;text-shadow:0 0 10px rgba(255,30,0,.6);transition:all .3s}
+    #labelTime.warn #totalLeft{color:#ff9800;text-shadow:0 0 10px rgba(255,152,0,.6)}
+    #labelTime.urgent #totalLeft{color:#ff1e00;text-shadow:0 0 12px rgba(255,30,0,.8);animation:pulse 1s infinite;}
+    @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+    #timeBar{height:6px;background:#ff1e00;transition:width 1s linear;}
+
+    .status{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:center;margin:12px 0;flex-direction:column;}
     .badge{background:#191b22;border:1px solid #252830;padding:6px 10px;border-radius:999px;font-size:13px;color:#d5d7dc}
     .controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:10px 0}
     button{background:var(--primary);color:#fff;border:none;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer}
     button.secondary{background:#1d212b;color:#e7e9ee;border:1px solid #2a2f3a}
     button.ghost{background:transparent;border:1px dashed #3a3f4d;color:#c9cbd2}
     button:disabled{opacity:.45;cursor:not-allowed;filter:saturate(.6)}
-    #shareX{ margin-top:6px; }
+    #shareX{margin-top:6px;}
 
     .sidebar{padding:16px;display:grid;gap:12px}
     .panel{background:#0f1117;border:1px solid #1f232d;border-radius:14px;padding:14px}
@@ -64,10 +67,27 @@
     .ok{color:#66ef9a}
     .wrong{color:#ff7a7a}
     .muted{color:#9aa0a6}
-    .footer{padding:18px;text-align:center;color:#9aa0a6; position: relative; z-index: 1;}
-    .leaderboard-entry {display:flex;justify-content:space-between;border-bottom:1px solid #222;padding:4px 0}
-    .leaderboard-entry span {font-size:14px}
+    .footer{padding:18px;text-align:center;color:#9aa0a6;position:relative;z-index:1;}
+    .leaderboard-entry{display:flex;justify-content:space-between;border-bottom:1px solid #222;padding:4px 0}
+    .leaderboard-entry span{font-size:14px}
     .danger{color:#ff7a7a}
+
+    /* Flash & Shake */
+    .flash-overlay{
+      position:fixed;inset:0;background:rgba(255,59,48,0.28);
+      animation:flashOut .6s ease-out forwards;
+      pointer-events:none;z-index:3;
+    }
+    @keyframes flashOut{from{opacity:1}to{opacity:0}}
+    .board.shake{animation:shake .6s ease}
+    @keyframes shake{
+      0%{transform:translateX(0)}
+      20%{transform:translateX(-6px)}
+      40%{transform:translateX(6px)}
+      60%{transform:translateX(-6px)}
+      80%{transform:translateX(6px)}
+      100%{transform:translateX(0)}
+    }
   </style>
 </head>
 <body>
@@ -76,9 +96,7 @@
       <img src="/images/logo-redstone.svg" alt="RedStone logo" class="title-logo" />
       <span class="title-text">RedStone Fans Game</span>
     </h1>
-    <div class="sub" id="subtitleText">
-      Guess the Team RedStone member as quickly as possible within 60 seconds. Highest scores go on the public leaderboard. 🏆
-    </div>
+    <div class="sub">Guess the Team RedStone member as quickly as possible within 60 seconds. Highest scores go on the public leaderboard. 🏆</div>
   </header>
 
   <main class="container">
@@ -92,10 +110,12 @@
         <div class="badge" id="labelGrid">Grid: <span id="gridLabel">3×3</span></div>
         <div class="badge" id="labelSeed">Seed: <span id="seedLabel">—</span></div>
         <div class="badge" id="labelTime">Blitz Time: <span id="totalLeft">60</span>s</div>
+        <div id="timeTrack" style="width:100%;background:#222;border-radius:8px;overflow:hidden;">
+          <div id="timeBar" style="width:100%"></div>
+        </div>
       </div>
       <div class="controls">
         <button id="reshuffle" class="secondary">⤮ Reshuffle</button>
-        <!-- Hint removed -->
         <button id="startBlitz" disabled>⚡ Start Blitz</button>
         <button id="stopBlitz" class="ghost">■ Stop Blitz</button>
       </div>
@@ -103,330 +123,160 @@
 
     <aside class="card sidebar">
       <div class="panel">
-        <h3 id="labelUsername">Username</h3>
+        <h3>Username</h3>
         <div class="row"><input id="username" type="text" placeholder="Your username..." /></div>
       </div>
 
       <div class="panel">
-        <h3 id="labelAnswer">Your Answer</h3>
+        <h3>Your Answer</h3>
         <div class="row">
-          <input id="answer" type="text" placeholder="e.g. ATOM / FEED / PULL" />
+          <input id="answer" type="text" placeholder="e.g. ALEX / JAKUB / MATT" />
           <button id="submit">Submit</button>
         </div>
         <div id="feedback" class="hint muted">Type your answer then press <b>Submit</b>.</div>
       </div>
 
       <div class="panel">
-        <h3 id="labelHistory">History</h3>
+        <h3>History</h3>
         <div id="history" class="list"></div>
       </div>
 
       <div class="panel">
-        <h3 id="labelLeaderboard">Leaderboard 🏆</h3>
+        <h3>Leaderboard 🏆</h3>
         <div id="leaderboard" class="list"></div>
         <button id="shareX" class="secondary">Share on X (Twitter)</button>
       </div>
     </aside>
   </main>
 
-  <div class="footer" id="footerText">Made by arunewbie for Redstone Community</div>
+  <div class="footer">Made by arunewbie for Redstone Community</div>
 
   <script>
-    // ======= Game data =======
+    // === Questions ===
     const QUESTIONS = [
-      { image: 'alex1.png',    answers: ['ALEX', 'alex'] },
-      { image: 'alex2.png',    answers: ['ALEX', 'alex'] },
-      { image: 'alex3.png',    answers: ['ALEX', 'alex'] },
-      { image: 'alex4.png',    answers: ['ALEX', 'alex'] },
-      { image: 'alex5.png',    answers: ['ALEX', 'alex'] },
-      { image: 'jakub1.png',    answers: ['JAKUB', 'jakub'] },
-      { image: 'jakub2.png',    answers: ['JAKUB', 'jakub'] },
-      { image: 'jakub3.png',    answers: ['JAKUB', 'jakub'] },
-      { image: 'jakub4.png',    answers: ['JAKUB', 'jakub'] },
-      { image: 'jakub5.png',    answers: ['JAKUB', 'jakub'] },
-      { image: 'marcin1.png',    answers: ['MARCIN', 'marcin'] },
-      { image: 'marcin2.png',    answers: ['MARCIN', 'marcin'] },
-      { image: 'marcin3.png',    answers: ['MARCIN', 'marcin'] },
-      { image: 'marcin4.png',    answers: ['MARCIN', 'marcin'] },
-      { image: 'marcin5.png',    answers: ['MARCIN', 'marcin'] },
-      { image: 'matt1.png',    answers: ['MATT', 'matt'] },
-      { image: 'matt2.png',    answers: ['MATT', 'matt'] },
-      { image: 'matt3.png',    answers: ['MATT', 'matt'] },
-      { image: 'matt4.png',    answers: ['MATT', 'matt'] },
-      { image: 'matt5.png',    answers: ['MATT', 'matt'] },
-      { image: 'arunewbie.png',    answers: ['ARUNEWBIE', 'arunewbie'] },
-      { image: 'balxyz.png',    answers: ['BALXYZ', 'balxyz'] },
-      { image: 'byte.png',    answers: ['BYTE', 'byte'] },
-      { image: 'iron.png',    answers: ['IRON', 'iron'] },
-      { image: 'jawor.png',    answers: ['JAWOR', 'jawor'] },
-      { image: 'morgana.png',    answers: ['MORGANA', 'morgana'] },
-      { image: 'pudim.png',    answers: ['PUDIM', 'pudim'] },
-      { image: 'smerfik.png',    answers: ['SMERFIK', 'smerfik'] },
-      { image: 'sugar.png',    answers: ['SUGAR', 'sugar'] },
-      { image: 'toneri.png',    answers: ['TONERI', 'toneri'] },
-  
+      { image:'alex1.png',answers:['ALEX','alex'] },
+      { image:'alex2.png',answers:['ALEX','alex'] },
+      { image:'jakub1.png',answers:['JAKUB','jakub'] },
+      { image:'matt1.png',answers:['MATT','matt'] },
+      { image:'morgana.png',answers:['MORGANA','morgana'] },
     ];
     const IMAGE_BASE = '/images/';
 
-    // ======= Utils =======
+    // === Utils ===
     function mulberry32(a){return function(){var t=a+=0x6D2B79F5;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
-    function seededShuffle(arr, rng){ for (let i=arr.length-1;i>0;i--){ const j=Math.floor(rng()* (i+1)); [arr[i],arr[j]]=[arr[j],arr[i]] } return arr }
-    function normalize(str){ return str.replace(/\s+/g,'').toUpperCase(); }
+    function seededShuffle(arr,rng){for(let i=arr.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]}return arr}
+    function normalize(s){return s.replace(/\s+/g,'').toUpperCase();}
 
-    // ======= DOM =======
-    const canvas = document.getElementById('board');
-    const ctx = canvas.getContext('2d');
-    const qIndexEl = document.getElementById('qIndex');
-    const qTotalEl = document.getElementById('qTotal');
-    const scoreEl = document.getElementById('score');
-    const gridLabel = document.getElementById('gridLabel');
-    const seedLabel = document.getElementById('seedLabel');
-    const totalLeftEl = document.getElementById('totalLeft');
-    const answerEl = document.getElementById('answer');
-    const feedbackEl = document.getElementById('feedback');
-    const historyEl = document.getElementById('history');
-    const leaderboardEl = document.getElementById('leaderboard');
-    const startBtn = document.getElementById('startBlitz');
-    const stopBtn = document.getElementById('stopBlitz');
-    const submitBtn = document.getElementById('submit');
-    const usernameInput = document.getElementById('username');
-    const shareBtn = document.getElementById('shareX');
+    // === DOM ===
+    const canvas=document.getElementById('board'),ctx=canvas.getContext('2d');
+    const qIndexEl=document.getElementById('qIndex'),qTotalEl=document.getElementById('qTotal');
+    const scoreEl=document.getElementById('score'),seedLabel=document.getElementById('seedLabel');
+    const totalLeftEl=document.getElementById('totalLeft'),answerEl=document.getElementById('answer');
+    const feedbackEl=document.getElementById('feedback'),historyEl=document.getElementById('history');
+    const leaderboardEl=document.getElementById('leaderboard');
+    const startBtn=document.getElementById('startBlitz'),stopBtn=document.getElementById('stopBlitz');
+    const submitBtn=document.getElementById('submit'),usernameInput=document.getElementById('username');
+    const shareBtn=document.getElementById('shareX'), timeBar=document.getElementById('timeBar');
 
-    // ======= State =======
-    const state = { idx:0, score:0, rows:3, cols:3, seed:Date.now()>>>0, revealCount:0, totalTime:60, totalLeft:60, totalTimer:null, ended:true };
-    qTotalEl.textContent = QUESTIONS.length;
+    const state={idx:0,score:0,rows:3,cols:3,seed:Date.now()>>>0,revealCount:0,totalTime:60,totalLeft:60,totalTimer:null,ended:true,lastBeepAt:null};
+    qTotalEl.textContent=QUESTIONS.length;
 
-    // ======= Leaderboard API with localStorage fallback =======
-    async function saveScore(username, score){
-      try{
-        if(!username) username = 'Anon';
-        const res = await fetch('/api/leaderboard',{ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ name: username, score })});
-        if(!res.ok) throw new Error('POST failed');
-      } catch(e){
-        let board = JSON.parse(localStorage.getItem('leaderboard')||'[]');
+    // === Audio beep ===
+    let audioCtx=null;
+    function ensureAudio(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();return audioCtx;}
+    function beep({freq=900,duration=140,type='sine',volume=0.12}={}){
+      const ctx=ensureAudio();const o=ctx.createOscillator();const g=ctx.createGain();
+      o.type=type;o.frequency.setValueAtTime(freq,ctx.currentTime);
+      g.gain.setValueAtTime(volume,ctx.currentTime);
+      o.connect(g).connect(ctx.destination);o.start();
+      g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+duration/1000);
+      o.stop(ctx.currentTime+duration/1000+0.01);
+    }
+
+    // === Leaderboard ===
+    async function saveScore(username,score){
+      try{if(!username)username='Anon';
+        const res=await fetch('/api/leaderboard',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:username,score})});
+        if(!res.ok)throw new Error();
+      }catch{
+        let board=JSON.parse(localStorage.getItem('leaderboard')||'[]');
         board.push({name:username,score:score,date:Date.now()});
-        board.sort((a,b)=>b.score - a.score);
-        board = board.slice(0,10);
+        board.sort((a,b)=>b.score-a.score);
+        board=board.slice(0,10);
         localStorage.setItem('leaderboard',JSON.stringify(board));
       }
       renderLeaderboard();
     }
-
     async function fetchLeaderboard(){
-      try{
-        const res = await fetch('/api/leaderboard');
-        if(!res.ok) throw new Error('GET failed');
-        return await res.json();
-      } catch(e){
-        return JSON.parse(localStorage.getItem('leaderboard')||'[]');
-      }
+      try{const r=await fetch('/api/leaderboard');if(!r.ok)throw new Error();return await r.json();}
+      catch{return JSON.parse(localStorage.getItem('leaderboard')||'[]');}
     }
-
     async function renderLeaderboard(){
       leaderboardEl.innerHTML='';
-      const data = await fetchLeaderboard();
-      (data||[]).forEach((entry,i)=>{
-        const div=document.createElement('div');
-        div.className='leaderboard-entry';
-        div.innerHTML=`<span>${i+1}. ${entry.name}</span><span>${entry.score}</span>`;
-        leaderboardEl.appendChild(div);
-      });
-      // Share no-rank: tombol selalu aktif
-      shareBtn.disabled = false;
-    }
-
-    // ======= Image load & draw =======
-    function loadImage(src){
-      return new Promise((resolve, reject)=>{
-        const img = new Image();
-        img.onload = ()=>resolve(img);
-        img.onerror = ()=>reject(new Error('Image not found: '+img.src));
-        img.src = IMAGE_BASE + src;
+      const data=await fetchLeaderboard();
+      (data||[]).forEach((e,i)=>{
+        const d=document.createElement('div');
+        d.className='leaderboard-entry';
+        d.innerHTML=`<span>${i+1}. ${e.name}</span><span>${e.score}</span>`;
+        leaderboardEl.appendChild(d);
       });
     }
 
-    async function drawScramble(img, rows, cols, seed, revealCount=0){
-      const w = canvas.width, h = canvas.height; ctx.clearRect(0,0,w,h);
-      const ratio = Math.max(w/img.width, h/img.height); const dw = img.width*ratio, dh = img.height*ratio; const dx = (w - dw)/2, dy = (h - dh)/2;
-      const tiles = []; for (let r=0;r<rows;r++) for(let c=0;c<cols;c++) tiles.push({r,c});
-      const rng = mulberry32(seed); const order = seededShuffle(tiles.slice(), rng);
-      let identical = true; for (let i=0;i<order.length;i++){ if(order[i].r!==tiles[i].r || order[i].c!==tiles[i].c){ identical=false; break; } }
-      if (identical && order.length>1){ [order[order.length-1], order[order.length-2]] = [order[order.length-2], order[order.length-1]] }
-      const sw = dw/cols, sh = dh/rows; const tw = w/cols,  th = h/rows;
-      const revealSet = new Set(); for (let k=0;k<revealCount && k<tiles.length;k++) revealSet.add(k);
-      for (let i=0;i<order.length;i++){
-        const src = order[i]; const tr = Math.floor(i/cols), tc = i%cols; const sx = dx + src.c*sw, sy = dy + src.r*sh; const tx = tc*tw, ty = tr*th;
-        let drawSx = sx, drawSy = sy; if (revealSet.has(i)){ const correctR = Math.floor(i/cols); const correctC = i%cols; drawSx = dx + correctC*sw; drawSy = dy + correctR*sh; }
-        ctx.drawImage(img, drawSx, drawSy, sw, sh, tx, ty, tw, th); ctx.strokeStyle = 'rgba(255,255,255,.06)'; ctx.lineWidth = 1; ctx.strokeRect(tx+0.5, ty+0.5, tw-1, th-1);
+    // === Game draw ===
+    function loadImage(src){return new Promise((res,rej)=>{const img=new Image();img.onload=()=>res(img);img.onerror=rej;img.src=IMAGE_BASE+src;});}
+    async function drawScramble(img,rows,cols,seed){
+      const w=canvas.width,h=canvas.height;ctx.clearRect(0,0,w,h);
+      const ratio=Math.max(w/img.width,h/img.height);
+      const dw=img.width*ratio,dh=img.height*ratio;
+      const dx=(w-dw)/2,dy=(h-dh)/2;
+      const tiles=[];for(let r=0;r<rows;r++)for(let c=0;c<cols;c++)tiles.push({r,c});
+      const rng=mulberry32(seed);const order=seededShuffle(tiles.slice(),rng);
+      const sw=dw/cols,sh=dh/rows,tw=w/cols,th=h/rows;
+      for(let i=0;i<order.length;i++){
+        const src=order[i];const tr=Math.floor(i/cols),tc=i%cols;
+        const sx=dx+src.c*sw,sy=dy+src.r*sh,tx=tc*tw,ty=tr*th;
+        ctx.drawImage(img,sx,sy,sw,sh,tx,ty,tw,th);
+        ctx.strokeStyle='rgba(255,255,255,.06)';ctx.strokeRect(tx+0.5,ty+0.5,tw-1,th-1);
       }
-      const grd = ctx.createRadialGradient(w/2,h/2,Math.min(w,h)/8, w/2,h/2,Math.max(w,h)/1.0); grd.addColorStop(0,'rgba(0,0,0,0)'); grd.addColorStop(1,'rgba(0,0,0,.35)'); ctx.fillStyle = grd; ctx.fillRect(0,0,w,h);
     }
-
     async function drawCurrent(){
-      const q = QUESTIONS[state.idx];
-      qIndexEl.textContent = state.idx+1;
-      seedLabel.textContent = state.seed;
-      const img = await loadImage(q.image);
-      await drawScramble(img, state.rows, state.cols, state.seed, state.revealCount);
+      const q=QUESTIONS[state.idx];qIndexEl.textContent=state.idx+1;seedLabel.textContent=state.seed;
+      const img=await loadImage(q.image);await drawScramble(img,state.rows,state.cols,state.seed);
     }
 
-    // ======= History UI =======
-    function addHistory(text, cls=''){
-      const div = document.createElement('div');
-      div.textContent = text;
-      if (cls) div.classList.add(cls);
-      historyEl.prepend(div);
+    // === History ===
+    function addHistory(t,cls=''){const d=document.createElement('div');d.textContent=t;if(cls)d.classList.add(cls);historyEl.prepend(d);}
+
+    // === Timer ===
+    function updateTotalUI(){
+      totalLeftEl.textContent=Math.max(0,state.totalLeft);
+      const badge=document.getElementById('labelTime');
+      badge.classList.remove('warn','urgent');
+      if(state.totalLeft<=10)badge.classList.add('urgent');
+      else if(state.totalLeft<=20)badge.classList.add('warn');
+      timeBar.style.width=((state.totalLeft/state.totalTime)*100)+'%';
+      if(!state.ended && state.totalLeft<=10 && state.totalLeft>=1){
+        if(state.lastBeepAt!==state.totalLeft){
+          state.lastBeepAt=state.totalLeft;
+          beep({freq:700+(10-state.totalLeft)*60,duration:120,type:'triangle',volume:0.14});
+        }
+      }
     }
 
-    // ======= Blitz controls =======
-    function updateStartState(){
-      const hasName = usernameInput.value.trim().length > 0;
-      startBtn.disabled = !hasName;
-    }
-    usernameInput.addEventListener('input', updateStartState);
+    // === Controls ===
+    function updateStartState(){startBtn.disabled=usernameInput.value.trim().length===0;}
+    usernameInput.addEventListener('input',updateStartState);
 
     function startBlitz(){
-      const name = usernameInput.value.trim();
-      if(!name){
-        feedbackEl.innerHTML = '⚠️ Please enter a username before starting.';
-        return;
-      }
-      state.ended=false;
-      state.score=0;
-      scoreEl.textContent=state.score;
-      historyEl.innerHTML='';
-      stopBlitz();
-      state.totalLeft = state.totalTime;
-      updateTotalUI();
-      state.totalTimer = setInterval(()=>{
-        state.totalLeft--;
-        updateTotalUI();
-        if(state.totalLeft<=0){
-          endBlitz();
-        }
+      if(!usernameInput.value.trim()){feedbackEl.innerHTML='⚠️ Please enter a username.';return;}
+      state.ended=false;state.score=0;scoreEl.textContent=0;historyEl.innerHTML='';
+      state.lastBeepAt=null;stopBlitz();state.totalLeft=state.totalTime;updateTotalUI();
+      state.totalTimer=setInterval(()=>{
+        state.totalLeft--;updateTotalUI();
+        if(state.totalLeft<=0){endBlitz();}
       },1000);
-      drawCurrent();
+      seededShuffle(QUESTIONS,mulberry32(Date.now())); // acak urutan pertanyaan
+      state.idx=0;drawCurrent();
     }
 
-    function stopBlitz(){
-      if(state.totalTimer){ clearInterval(state.totalTimer); state.totalTimer=null; }
-    }
-    function updateTotalUI(){
-      totalLeftEl.textContent = Math.max(0, state.totalLeft);
-      if (state.totalLeft <= 10) totalLeftEl.classList.add('danger'); else totalLeftEl.classList.remove('danger');
-    }
-    function endBlitz(){
-      stopBlitz(); state.ended=true;
-      feedbackEl.innerHTML = `⚡️ Blitz ended! Final score: <b>${state.score}</b>`;
-      const username=(document.getElementById('username').value||'Anon');
-      saveScore(username, state.score);
-    }
-    function nextQuestion(){ state.idx = (state.idx+1)%QUESTIONS.length; state.seed=(Math.random()*1e9)>>>0; state.revealCount=0; drawCurrent(); }
-
-    document.getElementById('reshuffle').onclick = ()=>{ state.seed = (Math.random()*1e9)>>>0; state.revealCount=0; drawCurrent() };
-    startBtn.onclick = startBlitz;
-    stopBtn.onclick = ()=>{ stopBlitz(); state.ended=true; feedbackEl.innerHTML = `■ Blitz stopped. Score: <b>${state.score}</b>`; const username=(document.getElementById('username').value||'Anon'); saveScore(username, state.score); };
-
-    submitBtn.onclick = ()=>{
-      if (state.ended) return;
-      const guess = normalize(answerEl.value || '');
-      if (!guess) return;
-      const correctAnswers = QUESTIONS[state.idx].answers.map(a => normalize(a));
-      const official = QUESTIONS[state.idx].answers[0];
-      if (correctAnswers.includes(guess)) {
-        state.score += 1;
-        scoreEl.textContent = state.score;
-        feedbackEl.innerHTML = `✅ Correct! Answer: <b>${official.toUpperCase()}</b>`;
-        addHistory('✔ ' + official.toUpperCase(), 'ok');
-        nextQuestion();
-      } else {
-        feedbackEl.innerHTML = '❌ Incorrect. Try again!';
-        addHistory('✖ ' + (answerEl.value || '').toUpperCase(), 'wrong');
-      }
-      answerEl.value = '';
-      answerEl.focus();
-    };
-    answerEl.addEventListener('keydown', (e)=>{ if(e.key==='Enter') submitBtn.click() });
-
-    // ======= Share (no-rank) =======
-    async function createShareCard(username, score){
-      const w = 1200, h = 630;
-      const c = document.createElement('canvas');
-      c.width = w; c.height = h;
-      const g = c.getContext('2d');
-
-      // background gradient
-      const grd = g.createLinearGradient(0,0,w,h);
-      grd.addColorStop(0,'#10131a'); grd.addColorStop(1,'#1d0b0b');
-      g.fillStyle = grd; g.fillRect(0,0,w,h);
-
-      // accent blobs
-      g.globalAlpha = 0.25;
-      g.fillStyle = '#ff1e00'; g.beginPath(); g.arc(w*0.85,h*0.2,160,0,Math.PI*2); g.fill();
-      g.fillStyle = '#ffffff'; g.beginPath(); g.arc(w*0.2,h*0.8,220,0,Math.PI*2); g.fill();
-      g.globalAlpha = 1;
-
-      // title
-      g.fillStyle = '#fff';
-      g.font = 'bold 64px system-ui';
-      g.fillText('RedStone Fans Game', 60, 120);
-
-      // username
-      g.font = '600 42px system-ui';
-      g.fillStyle = '#cfd3da';
-      g.fillText('Player', 60, 200);
-      g.fillStyle = '#ffffff';
-      g.font = '800 56px system-ui';
-      g.fillText(username || 'Anon', 60, 260);
-
-      // score
-      g.fillStyle = '#cfd3da';
-      g.font = '600 42px system-ui';
-      g.fillText('Score', 60, 340);
-      g.fillStyle = '#66ef9a';
-      g.font = '800 92px system-ui';
-      g.fillText(String(score || 0), 60, 420);
-
-      // footer
-      g.fillStyle = '#aab1ba';
-      g.font = '500 28px system-ui';
-      g.fillText(window.location.origin, 60, h-40);
-
-      return new Promise((resolve)=> c.toBlob(b=>resolve(b), 'image/png'));
-    }
-
-    function downloadBlob(blob, filename){
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = filename;
-      document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(()=>URL.revokeObjectURL(url), 1000);
-    }
-
-    async function getUserBestScore(username){
-      const data = await fetchLeaderboard();
-      const entries = (data||[]).filter(e => (e.name||'Anon') === (username||'Anon'));
-      if (!entries.length) return 0;
-      return entries.reduce((max,e)=> Math.max(max, e.score||0), 0);
-    }
-
-    shareBtn.addEventListener('click', async ()=>{
-      const username = (usernameInput.value || 'Anon').trim() || 'Anon';
-      // ambil best score user dari leaderboard; fallback ke 0
-      const score = await getUserBestScore(username);
-      const blob = await createShareCard(username, score);
-      downloadBlob(blob, `redstone-fans-${(username||'anon')}.png`);
-
-      const text = `Playing RedStone Fans Game! My best score: ${score}. Can you beat me?`;
-      const url = window.location.origin;
-      const hashtags = 'RedStone,gminer';
-      const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}&hashtags=${encodeURIComponent(hashtags)}`;
-      window.open(shareUrl, '_blank','noopener,noreferrer');
-    });
-
-    // ======= init =======
-    renderLeaderboard();
-    updateStartState();
-  </script>
-</body>
-</html>
+    function stopBlitz(){if(state.totalTimer){clearInterval
