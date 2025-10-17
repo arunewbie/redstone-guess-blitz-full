@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>RedStone Guess – Blitz 60s</title>
+  <title>RedStone Fans Game</title>
 
   <!-- Favicon (SVG + fallbacks) -->
   <link rel="icon" type="image/svg+xml" href="/images/logo-redstone.svg">
@@ -74,7 +74,7 @@
   <header>
     <h1 id="titleText">
       <img src="/images/logo-redstone.svg" alt="RedStone logo" class="title-logo" />
-      <span class="title-text">RedStone Fans</span>
+      <span class="title-text">RedStone Fans Game</span>
     </h1>
     <div class="sub" id="subtitleText">
       Guess the Team RedStone member as quickly as possible within 60 seconds. Highest scores go on the public leaderboard. 🏆
@@ -343,7 +343,7 @@
       // title
       g.fillStyle = '#fff';
       g.font = 'bold 64px system-ui';
-      g.fillText('RedStone Guess — Blitz 60s', 60, 120);
+      g.fillText('RedStone Fans Game', 60, 120);
 
       // username
       g.font = '600 42px system-ui';
@@ -391,7 +391,7 @@
       const blob = await createShareCard(username, score);
       downloadBlob(blob, `redstone-blitz-${(username||'anon')}.png`);
 
-      const text = `Playing RedStone Guess — Blitz 60s! My best score: ${score}. Can you beat me?`;
+      const text = `Playing RedStone Fans Game! My best score: ${score}. Can you beat me?`;
       const url = window.location.origin;
       const hashtags = 'RedStone,Web3Gaming,Onchain';
       const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}&hashtags=${encodeURIComponent(hashtags)}`;
