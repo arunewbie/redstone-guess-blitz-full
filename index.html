@@ -72,9 +72,27 @@ button:disabled{
       <option value="id">🇮🇩 Indonesia</option>
       <option value="en">🇬🇧 English</option>
     </select>
+
+    
   </div>
+  #titleText {
+  color: #ffffff;           /* warna teks putih */
+  display: flex;            /* sejajarkan logo dan teks */
+  align-items: center;      /* vertikal center */
+  justify-content: center;  /* horizontal center */
+  gap: 10px;                /* jarak antara logo dan teks */
+  font-weight: 800;
+}
+
+.title-logo {
+  height: 40px;             /* atur ukuran logo */
+}
+
   <header>
-    <h1 id="titleText">RedStone Fans</h1>
+  <h1 id="titleText">
+  <img src="/images/logo.png" alt="logo" class="title-logo" />
+  RedStone Fans
+</h1>
     <div class="sub" id="subtitleText">Guess the Team RedStone member as quickly as possible within 60 seconds. Highest scores go on the public leaderboard. 🏆</div>
   </header>
 
