@@ -261,10 +261,29 @@
         ctx.strokeStyle='rgba(255,255,255,.06)';ctx.strokeRect(tx+0.5,ty+0.5,tw-1,th-1);
       }
     }
-    async function drawCurrent(){
-      const q=QUESTIONS[state.idx];qIndexEl.textContent=state.idx+1;seedLabel.textContent=state.seed;
-      const img=await loadImage(q.image);await drawScramble(img,state.rows,state.cols,state.seed);
+   async function drawCurrent(skipCount=0){
+  const MAX_SKIP = 3; // hindari infinite loop
+  const q = QUESTIONS[state.idx];
+  qIndexEl.textContent = state.idx + 1;
+  seedLabel.textContent = state.seed;
+
+  const img = await loadImage(q.image);
+
+  if (!img){
+    // tampilkan placeholder, catat di history
+    drawPlaceholder(ctx, canvas.width, canvas.height, `Missing: ${q.image}`);
+    addHistory(`(skip) missing: ${q.image}`, 'wrong');
+
+    // auto lompat ke soal berikutnya (maks 3x)
+    if (skipCount < MAX_SKIP){
+      state.idx = (state.idx + 1) % QUESTIONS.length;
+      return drawCurrent(skipCount + 1);
     }
+    return; // kalau mentok, ya sudah tampilkan placeholder
+  }
+
+  await drawScramble(img, state.rows, state.cols, state.seed);
+}
 
     // === History ===
     function addHistory(t,cls=''){const d=document.createElement('div');d.textContent=t;if(cls)d.classList.add(cls);historyEl.prepend(d);}
