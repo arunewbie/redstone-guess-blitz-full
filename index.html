@@ -201,7 +201,7 @@ button:disabled{
     function setLanguage(lang){
       currentLang = lang; localStorage.setItem('lang', lang);
       const tr = t();
-      document.getElementById('titleText').textContent = tr.title;
+    document.querySelector('#titleText .title-text').textContent = tr.title;
       document.getElementById('subtitleText').textContent = tr.subtitle;
       document.getElementById('labelQuestion').childNodes[0].nodeValue = tr.question + ' ';
       document.getElementById('labelScore').childNodes[0].nodeValue = tr.score + ': ';
