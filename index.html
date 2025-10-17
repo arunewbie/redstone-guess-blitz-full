@@ -152,7 +152,7 @@
   <div class="footer">Made by arunewbie for Redstone Community</div>
 
   <script>
-    // === Questions ===
+    // === Questions (boleh tambah sendiri) ===
     const QUESTIONS = [
       { image:'alex1.png',answers:['ALEX','alex'] },
       { image:'alex2.png',answers:['ALEX','alex'] },
@@ -178,6 +178,7 @@
     const submitBtn=document.getElementById('submit'),usernameInput=document.getElementById('username');
     const shareBtn=document.getElementById('shareX'), timeBar=document.getElementById('timeBar');
 
+    // === State ===
     const state={idx:0,score:0,rows:3,cols:3,seed:Date.now()>>>0,revealCount:0,totalTime:60,totalLeft:60,totalTimer:null,ended:true,lastBeepAt:null};
     qTotalEl.textContent=QUESTIONS.length;
 
@@ -193,9 +194,10 @@
       o.stop(ctx.currentTime+duration/1000+0.01);
     }
 
-    // === Leaderboard ===
+    // === Leaderboard (API + fallback localStorage) ===
     async function saveScore(username,score){
-      try{if(!username)username='Anon';
+      try{
+        if(!username)username='Anon';
         const res=await fetch('/api/leaderboard',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:username,score})});
         if(!res.ok)throw new Error();
       }catch{
@@ -222,7 +224,7 @@
       });
     }
 
-    // === Game draw ===
+    // === Draw puzzle ===
     function loadImage(src){return new Promise((res,rej)=>{const img=new Image();img.onload=()=>res(img);img.onerror=rej;img.src=IMAGE_BASE+src;});}
     async function drawScramble(img,rows,cols,seed){
       const w=canvas.width,h=canvas.height;ctx.clearRect(0,0,w,h);
@@ -247,7 +249,7 @@
     // === History ===
     function addHistory(t,cls=''){const d=document.createElement('div');d.textContent=t;if(cls)d.classList.add(cls);historyEl.prepend(d);}
 
-    // === Timer ===
+    // === Timer UI ===
     function updateTotalUI(){
       totalLeftEl.textContent=Math.max(0,state.totalLeft);
       const badge=document.getElementById('labelTime');
@@ -275,8 +277,130 @@
         state.totalLeft--;updateTotalUI();
         if(state.totalLeft<=0){endBlitz();}
       },1000);
-      seededShuffle(QUESTIONS,mulberry32(Date.now())); // acak urutan pertanyaan
+      // acak urutan pertanyaan
+      seededShuffle(QUESTIONS,mulberry32(Date.now()));
       state.idx=0;drawCurrent();
     }
 
-    function stopBlitz(){if(state.totalTimer){clearInterval
+    function stopBlitz(){if(state.totalTimer){clearInterval(state.totalTimer);state.totalTimer=null;}}
+
+    function endBlitz(){
+      stopBlitz();state.ended=true;
+      // Flash overlay + shake board
+      const overlay=document.createElement('div');overlay.className='flash-overlay';document.body.appendChild(overlay);
+      const board=document.querySelector('.board');board.classList.add('shake');
+      setTimeout(()=>{board.classList.remove('shake');overlay.remove();},650);
+      // buzzer
+      beep({freq:520,duration:180,type:'sawtooth',volume:0.15});
+      setTimeout(()=>beep({freq:360,duration:220,type:'sawtooth',volume:0.15}),160);
+      feedbackEl.innerHTML=`⚡️ Blitz ended! Final score: <b>${state.score}</b>`;
+      const username=(document.getElementById('username').value||'Anon');saveScore(username,state.score);
+    }
+
+    function nextQuestion(){
+      state.idx=(state.idx+1)%QUESTIONS.length;
+      state.seed=(Math.random()*1e9)>>>0;
+      drawCurrent();
+    }
+
+    document.getElementById('reshuffle').onclick=()=>{state.seed=(Math.random()*1e9)>>>0;drawCurrent();};
+    startBtn.onclick=startBlitz;
+    stopBtn.onclick=()=>{stopBlitz();state.ended=true;feedbackEl.innerHTML=`■ Blitz stopped. Score: <b>${state.score}</b>`;const u=(document.getElementById('username').value||'Anon');saveScore(u,state.score);};
+
+    // Answer submit
+    const submitBtnHandler=()=>{
+      if(state.ended)return;
+      const guess=normalize(answerEl.value||''); if(!guess)return;
+      const correct=QUESTIONS[state.idx].answers.map(a=>normalize(a));
+      const official=QUESTIONS[state.idx].answers[0];
+      if(correct.includes(guess)){
+        state.score+=1;scoreEl.textContent=state.score;
+        feedbackEl.innerHTML=`✅ Correct! Answer: <b>${official.toUpperCase()}</b>`;
+        addHistory('✔ '+official.toUpperCase(),'ok');
+        nextQuestion();
+      }else{
+        feedbackEl.innerHTML='❌ Incorrect. Try again!';
+        addHistory('✖ '+(answerEl.value||'').toUpperCase(),'wrong');
+      }
+      answerEl.value='';answerEl.focus();
+    };
+    submitBtn.onclick=submitBtnHandler;
+    answerEl.addEventListener('keydown',e=>{if(e.key==='Enter')submitBtnHandler();});
+
+    // === Share on X with image (Web Share / Clipboard fallback) ===
+    function loadAssetImage(src){
+      return new Promise((resolve,reject)=>{
+        const img=new Image(); img.onload=()=>resolve(img); img.onerror=()=>reject(new Error('Logo not found: '+src));
+        img.src=src; // same-origin
+      });
+    }
+    async function createShareCard(username,score){
+      const w=1200,h=630; const c=document.createElement('canvas'); c.width=w;c.height=h; const g=c.getContext('2d');
+      const grd=g.createLinearGradient(0,0,w,h);grd.addColorStop(0,'#10131a');grd.addColorStop(1,'#1d0b0b');g.fillStyle=grd;g.fillRect(0,0,w,h);
+      g.globalAlpha=0.25; g.fillStyle='#ff1e00';g.beginPath();g.arc(w*0.85,h*0.2,160,0,Math.PI*2);g.fill();
+      g.fillStyle='#ffffff';g.beginPath();g.arc(w*0.2,h*0.8,220,0,Math.PI*2);g.fill(); g.globalAlpha=1;
+      g.fillStyle='#fff'; g.font='bold 64px system-ui'; g.fillText('RedStone Fans Game',60,120);
+      g.font='600 42px system-ui'; g.fillStyle='#cfd3da'; g.fillText('Player',60,200);
+      g.fillStyle='#ffffff'; g.font='800 56px system-ui'; g.fillText(username||'Anon',60,260);
+      g.fillStyle='#cfd3da'; g.font='600 42px system-ui'; g.fillText('Score',60,340);
+      g.fillStyle='#66ef9a'; g.font='800 92px system-ui'; g.fillText(String(score||0),60,420);
+      g.fillStyle='#aab1ba'; g.font='500 28px system-ui'; g.fillText(window.location.origin,60,h-40);
+      try{
+        const logo=await loadAssetImage('/images/logo-redstone.svg');
+        const pad=34; const targetH=72; const aspect=(logo.width&&logo.height)?(logo.width/logo.height):1; const targetW=Math.round(targetH*aspect)||72;
+        g.fillStyle='rgba(0,0,0,0.28)'; g.fillRect(w-targetW-pad*1.2,pad*0.8,targetW+pad*0.4,targetH+pad*0.4);
+        g.drawImage(logo,w-targetW-pad,pad,targetW,targetH);
+      }catch(e){}
+      return new Promise(res=>c.toBlob(b=>res(b),'image/png'));
+    }
+    async function fetchLeaderboard(){ // re-define to ensure available for getUserBestScore
+      try{const r=await fetch('/api/leaderboard');if(!r.ok)throw new Error();return await r.json();}
+      catch{return JSON.parse(localStorage.getItem('leaderboard')||'[]');}
+    }
+    async function getUserBestScore(username){
+      const data=await fetchLeaderboard();
+      const entries=(data||[]).filter(e=>(e.name||'Anon')===(username||'Anon'));
+      if(!entries.length)return 0;
+      return entries.reduce((m,e)=>Math.max(m,e.score||0),0);
+    }
+    shareBtn.addEventListener('click',async ()=>{
+      const username=(usernameInput.value||'Anon').trim()||'Anon';
+      const score=await getUserBestScore(username);
+      const blob=await createShareCard(username,score);
+      const text=`Playing RedStone Fans Game! My best score: ${score}. Can you beat me?`;
+      const url=window.location.origin;
+      const hashtags='RedStone,gminer';
+      const tweetIntent=`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}&hashtags=${encodeURIComponent(hashtags)}`;
+
+      const canShareFile=typeof navigator!=='undefined'&&navigator.canShare&&(()=>{
+        try{const f=new File([blob],`redstone-fans-${(username||'anon')}.png`,{type:'image/png'});return navigator.canShare({files:[f],text});}
+        catch{return false;}
+      })();
+
+      if(canShareFile){
+        try{
+          const file=new File([blob],`redstone-fans-${(username||'anon')}.png`,{type:'image/png'});
+          await navigator.share({files:[file],text});
+          return;
+        }catch{}
+      }
+      const canClipboard=navigator.clipboard&&window.ClipboardItem;
+      if(canClipboard){
+        try{
+          await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);
+          try{feedbackEl.innerHTML='📋 Image copied. Paste it in the X composer!';}catch{}
+          window.open(tweetIntent,'_blank','noopener,noreferrer'); return;
+        }catch{}
+      }
+      window.open(tweetIntent,'_blank','noopener,noreferrer');
+    });
+
+    // === init ===
+    renderLeaderboard();
+    function updateTimeBarWidth(){timeBar.style.width='100%';}
+    updateTimeBarWidth();
+    function updateStartState(){startBtn.disabled=usernameInput.value.trim().length===0;}
+    updateStartState();
+  </script>
+</body>
+</html>
