@@ -246,6 +246,7 @@
   });
 }
 
+    
     async function drawScramble(img,rows,cols,seed){
       const w=canvas.width,h=canvas.height;ctx.clearRect(0,0,w,h);
       const ratio=Math.max(w/img.width,h/img.height);
@@ -283,7 +284,16 @@
   }
 
   await drawScramble(img, state.rows, state.cols, state.seed);
+     
 }
+    document.getElementById('reshuffle').onclick = ()=>{
+  state.seed = (Math.random()*1e9)>>>0;
+  // selalu coba gambar current; kalau gagal, drawCurrent sudah handle
+  drawCurrent();
+};
+
+// di handler submit, tetap sama; drawCurrent akan handle error saat nextQuestion
+
 
     // === History ===
     function addHistory(t,cls=''){const d=document.createElement('div');d.textContent=t;if(cls)d.classList.add(cls);historyEl.prepend(d);}
