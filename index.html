@@ -415,11 +415,11 @@
       // ambil best score user dari leaderboard; fallback ke 0
       const score = await getUserBestScore(username);
       const blob = await createShareCard(username, score);
-      downloadBlob(blob, `redstone-blitz-${(username||'anon')}.png`);
+      downloadBlob(blob, `redstone-fans-${(username||'anon')}.png`);
 
       const text = `Playing RedStone Fans Game! My best score: ${score}. Can you beat me?`;
       const url = window.location.origin;
-      const hashtags = 'RedStone,Web3Gaming,Onchain';
+      const hashtags = 'RedStone,gminer';
       const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}&hashtags=${encodeURIComponent(hashtags)}`;
       window.open(shareUrl, '_blank','noopener,noreferrer');
     });
