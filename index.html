@@ -1,38 +1,23 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>RedStone Guess – Blitz 60s</title>
+
+  <!-- Favicon (SVG + fallbacks) -->
+  <link rel="icon" type="image/svg+xml" href="/images/logo-redstone.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16.png">
+
   <style>
     :root{--primary:#ff1e00;--bg:#0b0b0f;--muted:#9aa0a6;--card:#13141a}
     *{box-sizing:border-box}
- body{
-  background: url('/images/redstone-bg.png') no-repeat center center fixed;
-  background-size: cover;
-}
-    /* judul + logo */
-#titleText{
-  color: #ffffff !important;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  font-weight: 800;
-  letter-spacing: .3px;
-  text-shadow: 0 0 10px rgba(255,255,255,.25);
-}
-.title-logo{ height: 40px; width: auto; }
-.title-text{ color: #ffffff !important; }   /* pastikan teksnya putih */
-@media (max-width:520px){ .title-logo{ height: 32px; } }
 
-    
-button:disabled{
-  opacity:.45;
-  cursor:not-allowed;
-  filter:saturate(.6);
-}
-
+    body{
+      background: url('/images/redstone-bg.png') no-repeat center center fixed;
+      background-size: cover;
+    }
     body::before {
       content: '';
       position: fixed;
@@ -42,27 +27,32 @@ button:disabled{
       z-index: 0;
     }
 
+    /* Title + logo */
+    #titleText{
+      color:#fff!important; display:flex; align-items:center; justify-content:center;
+      gap:10px; font-weight:800; letter-spacing:.3px; text-shadow:0 0 10px rgba(255,255,255,.25);
+    }
+    .title-logo{ height:40px; width:auto }
+    .title-text{ color:#fff!important }
+    @media (max-width:520px){ .title-logo{ height:32px } }
+
     header{padding:22px 18px 6px;text-align:center; position: relative; z-index: 1;}
     h1{margin:0;font-weight:800;letter-spacing:.3px}
     .sub{color:var(--muted);font-size:14px}
-
-    .lang-select{position:absolute;top:20px;right:20px;z-index:2;}
-    select{background:#1d212b;color:#fff;border:1px solid #2a2f3a;border-radius:8px;padding:6px 10px;font-size:14px}
-
     .container{max-width:1080px;margin:20px auto;padding:0 16px;display:grid;grid-template-columns:1fr 360px;gap:18px; position: relative; z-index: 1;}
     @media (max-width:960px){.container{grid-template-columns:1fr}}
-
     .card{background:var(--card);border:1px solid #1e2027;border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
     .game{padding:16px}
     .board{display:flex;justify-content:center;align-items:center; padding:8px;}
     canvas{width:100%;max-width:560px;height:auto;display:block;border-radius:14px;border:1px solid #242633;background:#0b0c12}
-
     .status{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:center;margin:12px 0}
     .badge{background:#191b22;border:1px solid #252830;padding:6px 10px;border-radius:999px;font-size:13px;color:#d5d7dc}
     .controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:10px 0}
     button{background:var(--primary);color:#fff;border:none;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer}
     button.secondary{background:#1d212b;color:#e7e9ee;border:1px solid #2a2f3a}
     button.ghost{background:transparent;border:1px dashed #3a3f4d;color:#c9cbd2}
+    button:disabled{opacity:.45;cursor:not-allowed;filter:saturate(.6)}
+    #shareX{ margin-top:6px; }
 
     .sidebar{padding:16px;display:grid;gap:12px}
     .panel{background:#0f1117;border:1px solid #1f232d;border-radius:14px;padding:14px}
@@ -75,27 +65,20 @@ button:disabled{
     .wrong{color:#ff7a7a}
     .muted{color:#9aa0a6}
     .footer{padding:18px;text-align:center;color:#9aa0a6; position: relative; z-index: 1;}
-
     .leaderboard-entry {display:flex;justify-content:space-between;border-bottom:1px solid #222;padding:4px 0}
     .leaderboard-entry span {font-size:14px}
     .danger{color:#ff7a7a}
   </style>
 </head>
 <body>
-  <div class="lang-select">
-    <select id="language">
-      <option value="id">🇮🇩 Indonesia</option>
-      <option value="en">🇬🇧 English</option>
-    </select>
-
-  
-
   <header>
-  <h1 id="titleText">
-  <img src="/images/logo.png" alt="logo" class="title-logo" />
-  RedStone Fans
-</h1>
-    <div class="sub" id="subtitleText">Guess the Team RedStone member as quickly as possible within 60 seconds. Highest scores go on the public leaderboard. 🏆</div>
+    <h1 id="titleText">
+      <img src="/images/logo-redstone.svg" alt="RedStone logo" class="title-logo" />
+      <span class="title-text">RedStone Fans</span>
+    </h1>
+    <div class="sub" id="subtitleText">
+      Guess the Team RedStone member as quickly as possible within 60 seconds. Highest scores go on the public leaderboard. 🏆
+    </div>
   </header>
 
   <main class="container">
@@ -104,45 +87,44 @@ button:disabled{
         <canvas id="board" width="560" height="560"></canvas>
       </div>
       <div class="status">
-        <div class="badge" id="labelQuestion">Soal <span id="qIndex">1</span>/<span id="qTotal">1</span></div>
-        <div class="badge" id="labelScore">Skor: <span id="score">0</span></div>
+        <div class="badge" id="labelQuestion">Question <span id="qIndex">1</span>/<span id="qTotal">1</span></div>
+        <div class="badge" id="labelScore">Score: <span id="score">0</span></div>
         <div class="badge" id="labelGrid">Grid: <span id="gridLabel">3×3</span></div>
         <div class="badge" id="labelSeed">Seed: <span id="seedLabel">—</span></div>
-        <div class="badge" id="labelTime">Waktu Blitz: <span id="totalLeft">60</span>s</div>
+        <div class="badge" id="labelTime">Blitz Time: <span id="totalLeft">60</span>s</div>
       </div>
       <div class="controls">
-        <button id="reshuffle" class="secondary">⤮ Acak Ulang</button>
-        <button id="reveal" class="ghost">👁 Hint</button>
-       <button id="startBlitz" disabled>⚡ Mulai Blitz</button>
+        <button id="reshuffle" class="secondary">⤮ Reshuffle</button>
+        <!-- Hint removed -->
+        <button id="startBlitz" disabled>⚡ Start Blitz</button>
         <button id="stopBlitz" class="ghost">■ Stop Blitz</button>
       </div>
     </section>
 
-
-    
     <aside class="card sidebar">
       <div class="panel">
         <h3 id="labelUsername">Username</h3>
-        <div class="row"><input id="username" type="text" placeholder="Username kamu..." /></div>
+        <div class="row"><input id="username" type="text" placeholder="Your username..." /></div>
       </div>
 
       <div class="panel">
-        <h3 id="labelAnswer">Jawabanmu</h3>
+        <h3 id="labelAnswer">Your Answer</h3>
         <div class="row">
-          <input id="answer" type="text" placeholder="contoh: ATOM / FEED / PULL" />
-          <button id="submit">Jawab</button>
+          <input id="answer" type="text" placeholder="e.g. ATOM / FEED / PULL" />
+          <button id="submit">Submit</button>
         </div>
-        <div id="feedback" class="hint muted">Ketik jawaban lalu klik <b>Jawab</b>.</div>
+        <div id="feedback" class="hint muted">Type your answer then press <b>Submit</b>.</div>
       </div>
 
       <div class="panel">
-        <h3 id="labelHistory">Riwayat</h3>
+        <h3 id="labelHistory">History</h3>
         <div id="history" class="list"></div>
       </div>
 
       <div class="panel">
         <h3 id="labelLeaderboard">Leaderboard 🏆</h3>
         <div id="leaderboard" class="list"></div>
+        <button id="shareX" class="secondary">Share on X (Twitter)</button>
       </div>
     </aside>
   </main>
@@ -150,109 +132,22 @@ button:disabled{
   <div class="footer" id="footerText">Made by arunewbie for Redstone Community</div>
 
   <script>
-    // ================= I18N =================
-    const translations = {
-      id: {
-        title: 'RedStone Fans',
-        subtitle: 'Tebak Anggota Team RedStone secepat mungkin selama 60 detik. Skor tertinggi masuk leaderboard publik 🏆',
-        question: 'Soal',
-        score: 'Skor',
-        grid: 'Grid',
-        seed: 'Seed',
-        time: 'Waktu Blitz',
-        username: 'Username',
-        answer: 'Jawabanmu',
-        history: 'Riwayat',
-        leaderboard: 'Leaderboard 🏆',
-        footer: 'Made by arunewbie for Redstone Community',
-        submit: 'Jawab',
-        reshuffle: '⤮ Acak Ulang',
-        reveal: '👁 Hint',
-        start: '⚡ Mulai Blitz',
-        stop: '■ Stop Blitz',
-        placeholder: 'contoh: ATOM / FEED / PULL',
-        feedbackType: 'Ketik jawaban lalu klik',
-        correct: (a)=>`✅ Benar! Jawaban: <b>${a}</b>`,
-        wrong: '❌ Salah. Coba lagi!',
-        stopped: (s)=>`■ Blitz dihentikan. Skor: <b>${s}</b>`,
-        ended: (s)=>`⚡️ Blitz selesai! Skor akhir: <b>${s}</b>`,
-        historyOk: (a)=>`✔ ${a}`,
-        historyWrong: (g)=>`✖ ${g}`
-      },
-      en: {
-        title: 'RedStone Fans',
-        subtitle: 'Guess the Team RedStone member as quickly as possible within 60 seconds. Highest scores go on the public leaderboard.🏆',
-        question: 'Question',
-        score: 'Score',
-        grid: 'Grid',
-        seed: 'Seed',
-        time: 'Blitz Time',
-        username: 'Username',
-        answer: 'Your Answer',
-        history: 'History',
-        leaderboard: 'Leaderboard 🏆',
-        footer: 'Made by arunewbie for Redstone Community',
-        submit: 'Submit',
-        reshuffle: '⤮ Reshuffle',
-        reveal: '👁 Hint',
-        start: '⚡ Start Blitz',
-        stop: '■ Stop Blitz',
-        placeholder: 'e.g. ATOM / FEED / PULL',
-        feedbackType: 'Type your answer then press',
-        correct: (a)=>`✅ Correct! Answer: <b>${a}</b>`,
-        wrong: '❌ Incorrect. Try again!',
-        stopped: (s)=>`■ Blitz stopped. Score: <b>${s}</b>`,
-        ended: (s)=>`⚡️ Blitz ended! Final score: <b>${s}</b>`,
-        historyOk: (a)=>`✔ ${a}`,
-        historyWrong: (g)=>`✖ ${g}`
-      }
-    };
-
-    const langSelect = document.getElementById('language');
-    let currentLang = localStorage.getItem('lang') || 'id';
-
-    function t(){ return translations[currentLang]; }
-
-    function setLanguage(lang){
-      currentLang = lang; localStorage.setItem('lang', lang);
-      const tr = t();
-      document.querySelector('#titleText .title-text').textContent = tr.title;
-      document.getElementById('subtitleText').textContent = tr.subtitle;
-      document.getElementById('labelQuestion').childNodes[0].nodeValue = tr.question + ' ';
-      document.getElementById('labelScore').childNodes[0].nodeValue = tr.score + ': ';
-      document.getElementById('labelGrid').childNodes[0].nodeValue = tr.grid + ': ';
-      document.getElementById('labelSeed').childNodes[0].nodeValue = tr.seed + ': ';
-      document.getElementById('labelTime').childNodes[0].nodeValue = tr.time + ': ';
-      document.getElementById('labelUsername').textContent = tr.username;
-      document.getElementById('labelAnswer').textContent = tr.answer;
-      document.getElementById('labelHistory').textContent = tr.history;
-      document.getElementById('labelLeaderboard').textContent = tr.leaderboard;
-      document.getElementById('footerText').textContent = tr.footer;
-      document.getElementById('submit').textContent = tr.submit;
-      document.getElementById('reshuffle').textContent = tr.reshuffle;
-      document.getElementById('reveal').textContent = tr.reveal;
-      document.getElementById('startBlitz').textContent = tr.start;
-      document.getElementById('stopBlitz').textContent = tr.stop;
-      document.getElementById('answer').placeholder = tr.placeholder;
-      // update existing feedback text to current language
-      document.getElementById('feedback').innerHTML = `${tr.feedbackType} <b>${tr.submit}</b>.`;
-    }
-
-    langSelect.addEventListener('change', e => setLanguage(e.target.value));
-
-    // ================= Game (Blitz only) =================
+    // ======= Game data =======
     const QUESTIONS = [
-  { image: 'redstone.png', answers: ['REDSTONE', 'redstone', 'red stone'] },
-  { image: 'atom.png', answers: ['ATOM', 'atom'] },
-  { image: 'pull.png', answers: ['PULL', 'pull'] },
-  { image: 'feed.png', answers: ['FEED', 'feed'] },
-  { image: 'liquidation.png', answers: ['LIQUIDATION', 'liquidation'] },
-];
+      { image: 'redstone.png',    answers: ['REDSTONE', 'redstone', 'red stone'] },
+      { image: 'atom.png',        answers: ['ATOM', 'atom'] },
+      { image: 'pull.png',        answers: ['PULL', 'pull'] },
+      { image: 'feed.png',        answers: ['FEED', 'feed'] },
+      { image: 'liquidation.png', answers: ['LIQUIDATION', 'liquidation'] },
+    ];
     const IMAGE_BASE = '/images/';
 
+    // ======= Utils =======
     function mulberry32(a){return function(){var t=a+=0x6D2B79F5;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
     function seededShuffle(arr, rng){ for (let i=arr.length-1;i>0;i--){ const j=Math.floor(rng()* (i+1)); [arr[i],arr[j]]=[arr[j],arr[i]] } return arr }
+    function normalize(str){ return str.replace(/\s+/g,'').toUpperCase(); }
 
+    // ======= DOM =======
     const canvas = document.getElementById('board');
     const ctx = canvas.getContext('2d');
     const qIndexEl = document.getElementById('qIndex');
@@ -265,10 +160,17 @@ button:disabled{
     const feedbackEl = document.getElementById('feedback');
     const historyEl = document.getElementById('history');
     const leaderboardEl = document.getElementById('leaderboard');
+    const startBtn = document.getElementById('startBlitz');
+    const stopBtn = document.getElementById('stopBlitz');
+    const submitBtn = document.getElementById('submit');
+    const usernameInput = document.getElementById('username');
+    const shareBtn = document.getElementById('shareX');
 
+    // ======= State =======
     const state = { idx:0, score:0, rows:3, cols:3, seed:Date.now()>>>0, revealCount:0, totalTime:60, totalLeft:60, totalTimer:null, ended:true };
     qTotalEl.textContent = QUESTIONS.length;
 
+    // ======= Leaderboard API with localStorage fallback =======
     async function saveScore(username, score){
       try{
         if(!username) username = 'Anon';
@@ -284,31 +186,37 @@ button:disabled{
       renderLeaderboard();
     }
 
-    async function renderLeaderboard(){
-      leaderboardEl.innerHTML='';
+    async function fetchLeaderboard(){
       try{
         const res = await fetch('/api/leaderboard');
         if(!res.ok) throw new Error('GET failed');
-        const data = await res.json();
-        (data||[]).forEach((entry,i)=>{
-          const div=document.createElement('div');
-          div.className='leaderboard-entry';
-          div.innerHTML=`<span>${i+1}. ${entry.name}</span><span>${entry.score}</span>`;
-          leaderboardEl.appendChild(div);
-        });
+        return await res.json();
       } catch(e){
-        const board = JSON.parse(localStorage.getItem('leaderboard')||'[]');
-        board.forEach((entry,i)=>{
-          const div=document.createElement('div');
-          div.className='leaderboard-entry';
-          div.innerHTML=`<span>${i+1}. ${entry.name}</span><span>${entry.score}</span>`;
-          leaderboardEl.appendChild(div);
-        });
+        return JSON.parse(localStorage.getItem('leaderboard')||'[]');
       }
     }
 
+    async function renderLeaderboard(){
+      leaderboardEl.innerHTML='';
+      const data = await fetchLeaderboard();
+      (data||[]).forEach((entry,i)=>{
+        const div=document.createElement('div');
+        div.className='leaderboard-entry';
+        div.innerHTML=`<span>${i+1}. ${entry.name}</span><span>${entry.score}</span>`;
+        leaderboardEl.appendChild(div);
+      });
+      // Share no-rank: tombol selalu aktif
+      shareBtn.disabled = false;
+    }
+
+    // ======= Image load & draw =======
     function loadImage(src){
-      return new Promise((resolve, reject)=>{ const img = new Image(); img.onload = ()=>resolve(img); img.onerror = reject; img.src = IMAGE_BASE + src; })
+      return new Promise((resolve, reject)=>{
+        const img = new Image();
+        img.onload = ()=>resolve(img);
+        img.onerror = ()=>reject(new Error('Image not found: '+img.src));
+        img.src = IMAGE_BASE + src;
+      });
     }
 
     async function drawScramble(img, rows, cols, seed, revealCount=0){
@@ -316,7 +224,8 @@ button:disabled{
       const ratio = Math.max(w/img.width, h/img.height); const dw = img.width*ratio, dh = img.height*ratio; const dx = (w - dw)/2, dy = (h - dh)/2;
       const tiles = []; for (let r=0;r<rows;r++) for(let c=0;c<cols;c++) tiles.push({r,c});
       const rng = mulberry32(seed); const order = seededShuffle(tiles.slice(), rng);
-      let identical = true; for (let i=0;i<order.length;i++){ if(order[i].r!==tiles[i].r || order[i].c!==tiles[i].c){ identical=false; break; } } if (identical && order.length>1){ [order[order.length-1], order[order.length-2]] = [order[order.length-2], order[order.length-1]] }
+      let identical = true; for (let i=0;i<order.length;i++){ if(order[i].r!==tiles[i].r || order[i].c!==tiles[i].c){ identical=false; break; } }
+      if (identical && order.length>1){ [order[order.length-1], order[order.length-2]] = [order[order.length-2], order[order.length-1]] }
       const sw = dw/cols, sh = dh/rows; const tw = w/cols,  th = h/rows;
       const revealSet = new Set(); for (let k=0;k<revealCount && k<tiles.length;k++) revealSet.add(k);
       for (let i=0;i<order.length;i++){
@@ -328,104 +237,170 @@ button:disabled{
     }
 
     async function drawCurrent(){
-      const q = QUESTIONS[state.idx]; qIndexEl.textContent = state.idx+1; seedLabel.textContent = state.seed; const img = await loadImage(q.image); await drawScramble(img, state.rows, state.cols, state.seed, state.revealCount);
+      const q = QUESTIONS[state.idx];
+      qIndexEl.textContent = state.idx+1;
+      seedLabel.textContent = state.seed;
+      const img = await loadImage(q.image);
+      await drawScramble(img, state.rows, state.cols, state.seed, state.revealCount);
     }
 
-    function addHistory(text, cls=''){ const div = document.createElement('div'); div.textContent = text; if (cls) div.classList.add(cls); historyEl.prepend(div); }
+    // ======= History UI =======
+    function addHistory(text, cls=''){
+      const div = document.createElement('div');
+      div.textContent = text;
+      if (cls) div.classList.add(cls);
+      historyEl.prepend(div);
+    }
 
-    function startBlitz(){ state.ended=false; state.score=0; scoreEl.textContent=state.score; historyEl.innerHTML=''; stopBlitz(); state.totalLeft = state.totalTime; updateTotalUI(); state.totalTimer = setInterval(()=>{ state.totalLeft--; updateTotalUI(); if(state.totalLeft<=0){ endBlitz(); } },1000); drawCurrent(); }
-    function stopBlitz(){ if(state.totalTimer){ clearInterval(state.totalTimer); state.totalTimer=null; } }
-    function updateTotalUI(){ totalLeftEl.textContent = Math.max(0, state.totalLeft); if (state.totalLeft <= 10) totalLeftEl.classList.add('danger'); else totalLeftEl.classList.remove('danger'); }
-    function endBlitz(){ stopBlitz(); state.ended=true; feedbackEl.innerHTML = t().ended(state.score); const username=(document.getElementById('username').value||'Anon'); saveScore(username, state.score); }
+    // ======= Blitz controls =======
+    function updateStartState(){
+      const hasName = usernameInput.value.trim().length > 0;
+      startBtn.disabled = !hasName;
+    }
+    usernameInput.addEventListener('input', updateStartState);
 
+    function startBlitz(){
+      const name = usernameInput.value.trim();
+      if(!name){
+        feedbackEl.innerHTML = '⚠️ Please enter a username before starting.';
+        return;
+      }
+      state.ended=false;
+      state.score=0;
+      scoreEl.textContent=state.score;
+      historyEl.innerHTML='';
+      stopBlitz();
+      state.totalLeft = state.totalTime;
+      updateTotalUI();
+      state.totalTimer = setInterval(()=>{
+        state.totalLeft--;
+        updateTotalUI();
+        if(state.totalLeft<=0){
+          endBlitz();
+        }
+      },1000);
+      drawCurrent();
+    }
+
+    function stopBlitz(){
+      if(state.totalTimer){ clearInterval(state.totalTimer); state.totalTimer=null; }
+    }
+    function updateTotalUI(){
+      totalLeftEl.textContent = Math.max(0, state.totalLeft);
+      if (state.totalLeft <= 10) totalLeftEl.classList.add('danger'); else totalLeftEl.classList.remove('danger');
+    }
+    function endBlitz(){
+      stopBlitz(); state.ended=true;
+      feedbackEl.innerHTML = `⚡️ Blitz ended! Final score: <b>${state.score}</b>`;
+      const username=(document.getElementById('username').value||'Anon');
+      saveScore(username, state.score);
+    }
     function nextQuestion(){ state.idx = (state.idx+1)%QUESTIONS.length; state.seed=(Math.random()*1e9)>>>0; state.revealCount=0; drawCurrent(); }
 
     document.getElementById('reshuffle').onclick = ()=>{ state.seed = (Math.random()*1e9)>>>0; state.revealCount=0; drawCurrent() };
-    document.getElementById('reveal').onclick = ()=>{ state.revealCount = Math.min(state.revealCount+1, state.rows*state.cols-1); drawCurrent() };
-    const startBtn = document.getElementById('startBlitz');
-const usernameInput = document.getElementById('username');
+    startBtn.onclick = startBlitz;
+    stopBtn.onclick = ()=>{ stopBlitz(); state.ended=true; feedbackEl.innerHTML = `■ Blitz stopped. Score: <b>${state.score}</b>`; const username=(document.getElementById('username').value||'Anon'); saveScore(username, state.score); };
 
-// fungsi kontrol enable/disable tombol
-function updateStartState(){
-  const hasName = usernameInput.value.trim().length > 0;
-  startBtn.disabled = !hasName;
-}
-    
-function normalize(str){
-  return str.replace(/\s+/g,'')   // hilangkan semua spasi
-            .toUpperCase();       // ubah ke huruf besar
-}
+    submitBtn.onclick = ()=>{
+      if (state.ended) return;
+      const guess = normalize(answerEl.value || '');
+      if (!guess) return;
+      const correctAnswers = QUESTIONS[state.idx].answers.map(a => normalize(a));
+      const official = QUESTIONS[state.idx].answers[0];
+      if (correctAnswers.includes(guess)) {
+        state.score += 1;
+        scoreEl.textContent = state.score;
+        feedbackEl.innerHTML = `✅ Correct! Answer: <b>${official.toUpperCase()}</b>`;
+        addHistory('✔ ' + official.toUpperCase(), 'ok');
+        nextQuestion();
+      } else {
+        feedbackEl.innerHTML = '❌ Incorrect. Try again!';
+        addHistory('✖ ' + (answerEl.value || '').toUpperCase(), 'wrong');
+      }
+      answerEl.value = '';
+      answerEl.focus();
+    };
+    answerEl.addEventListener('keydown', (e)=>{ if(e.key==='Enter') submitBtn.click() });
 
-// kalau user ketik di input → cek apakah tombol bisa diaktifkan
-usernameInput.addEventListener('input', updateStartState);
+    // ======= Share (no-rank) =======
+    async function createShareCard(username, score){
+      const w = 1200, h = 630;
+      const c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      const g = c.getContext('2d');
 
-// validasi saat klik tombol
-function startBlitz(){
-  const name = usernameInput.value.trim();
-  if(!name){
-    feedbackEl.innerHTML = '⚠️ Masukkan username terlebih dahulu sebelum mulai.';
-    return;
-  }
-  state.ended=false;
-  state.score=0;
-  scoreEl.textContent=state.score;
-  historyEl.innerHTML='';
-  stopBlitz();
-  state.totalLeft = state.totalTime;
-  updateTotalUI();
-  state.totalTimer = setInterval(()=>{
-    state.totalLeft--;
-    updateTotalUI();
-    if(state.totalLeft<=0){
-      endBlitz();
+      // background gradient
+      const grd = g.createLinearGradient(0,0,w,h);
+      grd.addColorStop(0,'#10131a'); grd.addColorStop(1,'#1d0b0b');
+      g.fillStyle = grd; g.fillRect(0,0,w,h);
+
+      // accent blobs
+      g.globalAlpha = 0.25;
+      g.fillStyle = '#ff1e00'; g.beginPath(); g.arc(w*0.85,h*0.2,160,0,Math.PI*2); g.fill();
+      g.fillStyle = '#ffffff'; g.beginPath(); g.arc(w*0.2,h*0.8,220,0,Math.PI*2); g.fill();
+      g.globalAlpha = 1;
+
+      // title
+      g.fillStyle = '#fff';
+      g.font = 'bold 64px system-ui';
+      g.fillText('RedStone Guess — Blitz 60s', 60, 120);
+
+      // username
+      g.font = '600 42px system-ui';
+      g.fillStyle = '#cfd3da';
+      g.fillText('Player', 60, 200);
+      g.fillStyle = '#ffffff';
+      g.font = '800 56px system-ui';
+      g.fillText(username || 'Anon', 60, 260);
+
+      // score
+      g.fillStyle = '#cfd3da';
+      g.font = '600 42px system-ui';
+      g.fillText('Score', 60, 340);
+      g.fillStyle = '#66ef9a';
+      g.font = '800 92px system-ui';
+      g.fillText(String(score || 0), 60, 420);
+
+      // footer
+      g.fillStyle = '#aab1ba';
+      g.font = '500 28px system-ui';
+      g.fillText(window.location.origin, 60, h-40);
+
+      return new Promise((resolve)=> c.toBlob(b=>resolve(b), 'image/png'));
     }
-  },1000);
-  drawCurrent();
-}
 
-startBtn.onclick = startBlitz;
+    function downloadBlob(blob, filename){
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url), 1000);
+    }
 
-    document.getElementById('stopBlitz').onclick = ()=>{ stopBlitz(); state.ended=true; feedbackEl.innerHTML = t().stopped(state.score); const username=(document.getElementById('username').value||'Anon'); saveScore(username, state.score); };
+    async function getUserBestScore(username){
+      const data = await fetchLeaderboard();
+      const entries = (data||[]).filter(e => (e.name||'Anon') === (username||'Anon'));
+      if (!entries.length) return 0;
+      return entries.reduce((max,e)=> Math.max(max, e.score||0), 0);
+    }
 
-    // ✨ Fungsi bantu untuk normalisasi jawaban
-function normalize(str){
-  return str.replace(/\s+/g,'')   // hilangkan semua spasi
-            .toUpperCase();       // ubah ke huruf besar
-}
+    shareBtn.addEventListener('click', async ()=>{
+      const username = (usernameInput.value || 'Anon').trim() || 'Anon';
+      // ambil best score user dari leaderboard; fallback ke 0
+      const score = await getUserBestScore(username);
+      const blob = await createShareCard(username, score);
+      downloadBlob(blob, `redstone-blitz-${(username||'anon')}.png`);
 
-document.getElementById('submit').onclick = ()=>{
-  if (state.ended) return;
+      const text = `Playing RedStone Guess — Blitz 60s! My best score: ${score}. Can you beat me?`;
+      const url = window.location.origin;
+      const hashtags = 'RedStone,Web3Gaming,Onchain';
+      const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}&hashtags=${encodeURIComponent(hashtags)}`;
+      window.open(shareUrl, '_blank','noopener,noreferrer');
+    });
 
-  const guess = normalize(answerEl.value || '');
-  const username = document.getElementById('username').value.trim();
-  if (!guess) return;
-
-  const correctAnswers = QUESTIONS[state.idx].answers.map(a => normalize(a));
-  const official = QUESTIONS[state.idx].answers[0];
-
-  if (correctAnswers.includes(guess)) {
-    state.score += 1;
-    scoreEl.textContent = state.score;
-    feedbackEl.innerHTML = t().correct(official.toUpperCase());
-    addHistory(t().historyOk(official.toUpperCase()), 'ok');
-    nextQuestion();
-  } else {
-    feedbackEl.innerHTML = t().wrong;
-    addHistory(t().historyWrong(answerEl.value.toUpperCase()), 'wrong');
-  }
-
-  answerEl.value = '';
-  answerEl.focus();
-};
-
-
-    answerEl.addEventListener('keydown', (e)=>{ if(e.key==='Enter') document.getElementById('submit').click() });
-
-    // init
-    langSelect.value = currentLang; setLanguage(currentLang); renderLeaderboard();
-    
+    // ======= init =======
+    renderLeaderboard();
     updateStartState();
-
   </script>
 </body>
 </html>
